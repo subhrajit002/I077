@@ -1,643 +1,208 @@
-CREATE TABLE contacts (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  message TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+leardership.js
+import LeadershipSection from "../components/LeadershipSection";
+import PhotoCarousel from "../components/PhotoCarousel";
+import "../styles/global.css"
+
+export default function LeadershipPage() {
+    return (
+        <div className="container-fluid p-0">
+            <header className="bg-dark text-white text-center py-5">
+                <h1 className="display-4 fw-bold">Our Leadership Team</h1>
+                <p className="lead">Meet the visionaries behind our success</p>
+            </header>
+
+            <main className="container py-5">
+                <LeadershipSection />
+
+                <section className="mt-5 pt-5 border-top">
+                    <h2 className="text-center mb-4 fw-bold">Company Highlights</h2>
+                    <p className="text-center mb-5 text-muted">Glimpses of our journey, culture, and achievements</p>
+                    <PhotoCarousel />
+                </section>
+            </main>
+
+            <footer className="bg-dark text-white text-center py-4 mt-5">
+                <p className="mb-0">© 2024 Company Name. All rights reserved.</p>
+            </footer>
+        </div>
+    )
+}
 
 
+leardershipSection.js
+import React from "react"
+import LeadershipCard from "./LeadershipCard"
+import image from "../components/subhrajit.jpeg";
 
-const pool = require('../dbConnect'); // adjust path to your db connection
+export default function LeadershipSection() {
+    const leadershipTeam = [
+        {
+            id: 1,
+            name: "Sarah Johnson",
+            position: "Chief Executive Officer",
+            photo: image,
+            description: "With over 20 years of industry experience, Sarah leads our company with vision and strategic insight.",
+        },
+    ]
 
-const submitContact = async (req, res) => {
-  try {
-    const { name, email, message } = req.body;
+    return (
+        <section className="leadership-section">
+            <div className="row g-4">
+                {leadershipTeam.map((leader) => (
+                    <div key={leader.id} className="col-md-6 col-lg-4">
+                        {/* <LeadershipCard leader={leader} /> */}
+                        <LeadershipCard leader={leader} />
+                    </div>
+                ))}
+            </div>
+        </section>
+    )
+}
 
-    if (!name || !email || !message) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
 
-    const insertQuery = `
-      INSERT INTO contacts (name, email, message)
-      VALUES ($1, $2, $3)
-      RETURNING *
-    `;
+learderCard.js
+import React from "react"
 
-    const values = [name, email, message];
-    const result = await pool.query(insertQuery, values);
+export default function LeadershipCard({ leader }) {
+    return (
+        <div className="card h-100 shadow-sm border-0 leadership-card">
+            <div className="text-center p-3">
+                <div className="position-relative mx-auto" style={{ width: "180px", height: "180px" }}>
+                    <img
+                        src={leader.photo }
+                        alt={leader.name}
+                        className="rounded-circle border border-3 border-light shadow"
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                </div>
+            </div>
+            <div className="card-body text-center">
+                <h3 className="card-title fw-bold">{leader.name}</h3>
+                <p className="text-primary fw-semibold mb-3">{leader.position}</p>
+                <p className="card-text text-muted">{leader.description}</p>
+            </div>
+            <div className="card-footer bg-white border-0 text-center pb-4">
+                <div className="d-flex justify-content-center gap-3">
+                    {/* <a href="#" className="text-dark fs-5"><i className="bi bi-linkedin"></i></a>
+                    <a href="#" className="text-dark fs-5"><i className="bi bi-twitter-x"></i></a>
+                    <a href="#" className="text-dark fs-5"><i className="bi bi-envelope"></i></a> */}
+                </div>
+            </div>
+        </div>
+    )
+}
 
-    return res.status(200).json({
-      message: 'Contact submitted successfully',
-      contact: result.rows[0],
-    });
 
-  } catch (error) {
-    console.error('Contact submission error:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+photoCaroseul.js
+import React, { useState } from "react"
+
+export default function PhotoCarousel() {
+  const companyPhotos = [
+    { id: 1, src: "/placeholder.svg", alt: "Company headquarters", caption: "Our modern headquarters in downtown" },
+    { id: 2, src: "/placeholder.svg", alt: "Team building event", caption: "Annual team building retreat" },
+    { id: 3, src: "/placeholder.svg", alt: "Product launch", caption: "Our latest product launch event" },
+    { id: 4, src: "/placeholder.svg", alt: "Community service", caption: "Giving back to our community" },
+    { id: 5, src: "/placeholder.svg", alt: "Innovation lab", caption: "Where our best ideas come to life" },
+  ]
+
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev === 0 ? companyPhotos.length - 1 : prev - 1))
   }
-};
 
-module.exports = { submitContact };
-
-
-
-
-
-"use client"
-
-import type React from "react"
-
-import { useState } from "react"
-import { Form } from "react-bootstrap"
-import { TextField, Button, InputAdornment, Typography, Box, MenuItem, Alert } from "@mui/material"
-import { Person, Email, Subject, Message } from "@mui/icons-material"
-
-const subjects = ["General Inquiry", "Technical Support", "Billing Question", "Feature Request", "Other"]
-
-export default function ContactForm() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [subject, setSubject] = useState("")
-  const [message, setMessage] = useState("")
-  const [nameError, setNameError] = useState("")
-  const [emailError, setEmailError] = useState("")
-  const [subjectError, setSubjectError] = useState("")
-  const [messageError, setMessageError] = useState("")
-  const [submitSuccess, setSubmitSuccess] = useState(false)
-
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return re.test(email)
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Reset errors
-    setNameError("")
-    setEmailError("")
-    setSubjectError("")
-    setMessageError("")
-    setSubmitSuccess(false)
-
-    // Validate name
-    if (!name) {
-      setNameError("Name is required")
-      return
-    }
-
-    // Validate email
-    if (!email) {
-      setEmailError("Email is required")
-      return
-    } else if (!validateEmail(email)) {
-      setEmailError("Please enter a valid email address")
-      return
-    }
-
-    // Validate subject
-    if (!subject) {
-      setSubjectError("Please select a subject")
-      return
-    }
-
-    // Validate message
-    if (!message) {
-      setMessageError("Message is required")
-      return
-    } else if (message.length < 10) {
-      setMessageError("Message must be at least 10 characters")
-      return
-    }
-
-    // If validation passes, show success message
-    // In a real app, you would send the form data to a server
-    setSubmitSuccess(true)
-
-    // Clear form after successful submission
-    // setName('')
-    // setEmail('')
-    // setSubject('')
-    // setMessage('')
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev === companyPhotos.length - 1 ? 0 : prev + 1))
   }
 
   return (
-    <Box>
-      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 600 }}>
-        Get In Touch
-      </Typography>
-      <Typography variant="body1" gutterBottom align="center" color="text.secondary" sx={{ mb: 3 }}>
-        We'd love to hear from you. Please fill out the form below.
-      </Typography>
-
-      {submitSuccess && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          Your message has been sent successfully! We'll get back to you soon.
-        </Alert>
-      )}
-
-      <Form onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
-          label="Full Name"
-          variant="outlined"
-          margin="normal"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          error={!!nameError}
-          helperText={nameError}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Person color="action" />
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        <TextField
-          fullWidth
-          label="Email Address"
-          variant="outlined"
-          margin="normal"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={!!emailError}
-          helperText={emailError}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Email color="action" />
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        <TextField
-          select
-          fullWidth
-          label="Subject"
-          variant="outlined"
-          margin="normal"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          error={!!subjectError}
-          helperText={subjectError}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Subject color="action" />
-              </InputAdornment>
-            ),
-          }}
-        >
-          {subjects.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
+    <div className="photo-carousel position-relative">
+      <div className="carousel slide shadow rounded overflow-hidden">
+        <div className="carousel-inner">
+          {companyPhotos.map((photo, index) => (
+            <div key={photo.id} className={`carousel-item ${index === activeIndex ? "active" : ""}`}>
+              <img
+                src={photo.src}
+                alt={photo.alt}
+                className="d-block w-100"
+                style={{ height: "500px", objectFit: "cover" }}
+              />
+              <div className="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded py-2">
+                <h5>{photo.alt}</h5>
+                <p>{photo.caption}</p>
+              </div>
+            </div>
           ))}
-        </TextField>
-
-        <TextField
-          fullWidth
-          label="Message"
-          variant="outlined"
-          margin="normal"
-          multiline
-          rows={4}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          error={!!messageError}
-          helperText={messageError}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start" sx={{ alignSelf: "flex-start", mt: 1.5 }}>
-                <Message color="action" />
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        <Button
-          type="submit"
-          variant="contained"
-          color="secondary"
-          fullWidth
-          size="large"
-          sx={{
-            py: 1.5,
-            textTransform: "none",
-            fontWeight: 600,
-            fontSize: "1rem",
-            mt: 2,
-          }}
-        >
-          Send Message
-        </Button>
-      </Form>
-    </Box>
-  )
-}
-
-
-
-"use client"
-
-import type React from "react"
-
-import { useState } from "react"
-import { Form } from "react-bootstrap"
-import { TextField, Button, InputAdornment, IconButton, Typography, Box, Divider, Alert } from "@mui/material"
-import { Visibility, VisibilityOff, Email, Lock, Google, Facebook, Apple } from "@mui/icons-material"
-
-export default function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [emailError, setEmailError] = useState("")
-  const [passwordError, setPasswordError] = useState("")
-  const [loginSuccess, setLoginSuccess] = useState(false)
-
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword)
-  }
-
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return re.test(email)
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Reset errors
-    setEmailError("")
-    setPasswordError("")
-    setLoginSuccess(false)
-
-    // Validate email
-    if (!email) {
-      setEmailError("Email is required")
-      return
-    } else if (!validateEmail(email)) {
-      setEmailError("Please enter a valid email address")
-      return
-    }
-
-    // Validate password
-    if (!password) {
-      setPasswordError("Password is required")
-      return
-    } else if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters")
-      return
-    }
-
-    // If validation passes, show success message
-    // In a real app, you would handle authentication here
-    setLoginSuccess(true)
-
-    // Clear form after successful submission
-    // setEmail('')
-    // setPassword('')
-  }
-
-  return (
-    <Box>
-      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 600 }}>
-        Welcome Back
-      </Typography>
-      <Typography variant="body1" gutterBottom align="center" color="text.secondary" sx={{ mb: 3 }}>
-        Please login to access your account
-      </Typography>
-
-      {loginSuccess && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          Login successful!
-        </Alert>
-      )}
-
-      <Form onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
-          label="Email Address"
-          variant="outlined"
-          margin="normal"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={!!emailError}
-          helperText={emailError}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Email color="action" />
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        <TextField
-          fullWidth
-          label="Password"
-          variant="outlined"
-          margin="normal"
-          type={showPassword ? "text" : "password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          error={!!passwordError}
-          helperText={passwordError}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Lock color="action" />
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        <Box sx={{ textAlign: "right", mt: 1, mb: 3 }}>
-          <Typography variant="body2" color="primary" sx={{ cursor: "pointer" }}>
-            Forgot Password?
-          </Typography>
-        </Box>
-
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          size="large"
-          sx={{
-            py: 1.5,
-            textTransform: "none",
-            fontWeight: 600,
-            fontSize: "1rem",
-            mb: 3,
-          }}
-        >
-          Login
-        </Button>
-
-        <Divider sx={{ my: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            OR CONTINUE WITH
-          </Typography>
-        </Divider>
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mt: 3 }}>
-          <Button variant="outlined" startIcon={<Google />} fullWidth sx={{ textTransform: "none" }}>
-            Google
-          </Button>
-          <Button variant="outlined" startIcon={<Facebook />} fullWidth sx={{ textTransform: "none" }}>
-            Facebook
-          </Button>
-          <Button variant="outlined" startIcon={<Apple />} fullWidth sx={{ textTransform: "none" }}>
-            Apple
-          </Button>
-        </Box>
-
-        <Box sx={{ textAlign: "center", mt: 3 }}>
-          <Typography variant="body2">
-            Don't have an account?{" "}
-            <Typography component="span" variant="body2" color="primary" sx={{ cursor: "pointer", fontWeight: 600 }}>
-              Sign Up
-            </Typography>
-          </Typography>
-        </Box>
-      </Form>
-    </Box>
-  )
-}
-
-
-
-page.tsx
-
-"use client"
-
-import type React from "react"
-
-import { useState } from "react"
-import { Container, Row, Col } from "react-bootstrap"
-import LoginForm from "@/components/login-form"
-import ContactForm from "@/components/contact-form"
-import "bootstrap/dist/css/bootstrap.min.css"
-import { ThemeProvider, createTheme } from "@mui/material/styles"
-import { CssBaseline, Paper, Box, Tabs, Tab } from "@mui/material"
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#6a1b9a",
-    },
-    secondary: {
-      main: "#26a69a",
-    },
-  },
-  typography: {
-    fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
-  },
-})
-
-export default function Home() {
-  const [activeTab, setActiveTab] = useState(0)
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue)
-  }
-
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <div
-        className="min-vh-100 d-flex align-items-center py-5"
-        style={{
-          background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
-        }}
-      >
-        <Container>
-          <Row className="justify-content-center">
-            <Col md={10} lg={8}>
-              <Paper elevation={3} sx={{ borderRadius: "16px", overflow: "hidden" }}>
-                <Box
-                  sx={{
-                    borderBottom: 1,
-                    borderColor: "divider",
-                    backgroundColor: theme.palette.primary.main,
-                    color: "white",
-                  }}
-                >
-                  <Tabs
-                    value={activeTab}
-                    onChange={handleTabChange}
-                    variant="fullWidth"
-                    textColor="inherit"
-                    TabIndicatorProps={{
-                      style: {
-                        backgroundColor: "white",
-                      },
-                    }}
-                  >
-                    <Tab label="Login" />
-                    <Tab label="Contact Us" />
-                  </Tabs>
-                </Box>
-                <Box sx={{ p: 4 }}>
-                  {activeTab === 0 && <LoginForm />}
-                  {activeTab === 1 && <ContactForm />}
-                </Box>
-              </Paper>
-            </Col>
-          </Row>
-        </Container>
+        </div>
+        <button className="carousel-control-prev" type="button" onClick={handlePrev}>
+          <span className="carousel-control-prev-icon"></span>
+        </button>
+        <button className="carousel-control-next" type="button" onClick={handleNext}>
+          <span className="carousel-control-next-icon"></span>
+        </button>
       </div>
-    </ThemeProvider>
+
+      <div className="carousel-indicators mt-3 d-flex justify-content-center">
+        {companyPhotos.map((_, index) => (
+          <button
+            key={index}
+            type="button"
+            className={`bg-primary ${index === activeIndex ? "active" : ""}`}
+            onClick={() => setActiveIndex(index)}
+          ></button>
+        ))}
+      </div>
+    </div>
   )
 }
-
-
-layout.tsx
-
-    import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-
-const inter = Inter({ subsets: ["latin"] })
-
-export const metadata: Metadata = {
-  title: "Contact & Login Page",
-  description: "Beautiful contact and login page built with React, Bootstrap and Material UI",
-}
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className={inter.className}>{children}</body>
-    </html>
-  )
-}
-
 
 
 global.css
-
-    @tailwind base;
-@tailwind components;
-@tailwind utilities;
+:root {
+  --primary-color: #0d6efd;
+  --secondary-color: #6c757d;
+  --dark-color: #212529;
+  --light-color: #f8f9fa;
+}
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f8f9fa;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.leadership-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+.leadership-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
 }
 
-@layer base {
-  * {
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-    @apply border-border;
-  }
-  html,
-  body {
-    max-width: 100vw;
-    overflow-x: hidden;
-    height: 100%;
-    @apply bg-background text-foreground;
+.carousel-item img {
+  height: 500px;
+  object-fit: cover;
+}
+
+.carousel-indicators button {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+  margin: 0 5px;
+}
+
+.carousel-indicators button.active {
+  opacity: 1;
+}
+
+.photo-carousel {
+  margin-bottom: 60px;
+}
+
+@media (max-width: 768px) {
+  .carousel-item img {
+    height: 300px;
   }
 }
