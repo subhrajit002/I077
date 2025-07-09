@@ -1,43 +1,37 @@
-Perfect — so the seasonality component in your system will allow the user to specify which time buckets (monthly, weekly, or annual) they want to use for capturing seasonal demand patterns.
-
-Here's a complete and polished User Story for the Seasonality Component, following your documentation format:
+Perfect! Based on your explanation (without directly using your examples), here is a professional, clear, and complete User Story for the Seasonality Component, written in the format your team follows:
 
 
 ---
 
-📄 User Story: Seasonality Detection Based on User-Defined Time Buckets
+📄 User Story: Dynamic Seasonality Adjustment for Demand Forecasting
 
 
 ---
 
 ✅ Overview
 
-The system should allow users to configure seasonality detection by selecting a time bucket — weekly, monthly, or annual. Based on the chosen bucket, the system should identify and learn recurring demand patterns that occur within that time frame, and use them to improve forecasting accuracy. The seasonal patterns should reflect natural business cycles like weekend shopping peaks, monthly bill payments, or annual festive spikes.
+The system should detect and incorporate dynamic seasonality patterns into demand forecasting. These patterns refer to recurring demand fluctuations caused by seasonal changes or events that do not occur in fixed weeks or months every year. Since the timing of seasons and events can shift across years, the system must be capable of recognizing and adapting to these changes. This ensures that demand predictions remain accurate even when seasonal influences move on the calendar.
 
 
 ---
 
 ⚙️ Functional Requirements
 
-The system must provide a configurable parameter for selecting seasonality time bucket.
+The system must identify recurring seasonal patterns from historical demand data across multiple years.
 
-Accepted values: "weekly", "monthly", "annual".
+Seasonal windows must be detected based on actual calendar dates rather than static week or month numbers.
 
+The model must apply a week shifting logic to account for year-to-year variations in seasonal timing.
 
-Based on the selected value:
+If a seasonal event or pattern appears in different months or weeks in different years, the system should align these instances dynamically and learn the common demand behavior.
 
-For weekly, the system should capture day-of-week effects (e.g., higher demand on weekends).
+The system should handle varying lengths of seasonal periods — short events (like festivals) or long ranges (like summer/winter sales).
 
-For monthly, the system should capture demand shifts that happen in specific weeks of a month (e.g., month-end sales).
+The forecast engine must adjust future predictions using the learned seasonal effects for corresponding periods in the forecast horizon.
 
-For annual, the system should capture long-term yearly cycles (e.g., Diwali, summer sales).
+Seasonal impacts should be applied in a modular way, allowing them to be analyzed, tuned, or removed if needed.
 
-
-The seasonality model should learn from historical demand data and apply this learning to improve future demand predictions.
-
-The system should allow switching between buckets without requiring code changes, via configuration.
-
-If no bucket is selected, the system will default to "monthly".
+The system should be able to handle years with both 52 and 53 weeks without misalignment of seasonal patterns.
 
 
 
@@ -45,21 +39,19 @@ If no bucket is selected, the system will default to "monthly".
 
 🎯 Acceptance Criteria
 
-✅ User can select one of the supported time buckets (weekly, monthly, or annual) via system configuration.
+✅ The system detects and learns seasonal demand spikes and drops from historical data.
 
-✅ The system detects and applies seasonality based on the selected bucket.
+✅ Learned seasonal patterns are based on calendar date alignment, not static week numbers.
 
-✅ Weekly bucket captures 7-day cycles and day-specific effects.
+✅ When the same seasonal event shifts its timing across years, the model adjusts the pattern using week shifting logic.
 
-✅ Monthly bucket captures demand fluctuations tied to specific weeks/days of a month.
+✅ Seasonal windows are flexible in length and can span multiple weeks.
 
-✅ Annual bucket identifies recurring yearly events or long-term seasonal changes.
+✅ Forecast output reflects seasonal demand adjustments accurately in future predictions.
 
-✅ Switching between buckets reflects correctly in the forecast output.
+✅ The system handles 52-week and 53-week years without breaking the alignment of seasonal data.
 
-✅ If no value is selected, the system defaults to monthly seasonality.
-
-✅ The forecast output visibly incorporates seasonal adjustments based on selected time bucket.
+✅ Seasonal effects are stored and applied as separate layers in the model to enable transparency and explainability.
 
 
 
@@ -67,12 +59,12 @@ If no bucket is selected, the system will default to "monthly".
 
 💬 Description (In Simple Words)
 
-Different businesses have different seasonal patterns — some see demand go up on weekends, some during the end of the month, and others during specific months of the year.
+Some demand patterns repeat every year, like high sales during certain seasons or events. But the timing of these seasons or events may change slightly each year — sometimes they come earlier, sometimes later. This makes it hard to capture seasonality using fixed months or weeks.
 
-This seasonality feature lets users choose what kind of pattern is most important to their business — weekly, monthly, or yearly — so the system can adjust forecasts accordingly. That way, the model understands and predicts recurring ups and downs better, making planning more accurate.
+The system should be smart enough to learn these shifting seasonal patterns from past data, understand when they usually happen (even if the timing shifts), and apply that learning to forecast future demand more accurately. This ensures that even when seasons or events move, the system still knows what kind of demand change to expect and when to apply it.
 
 
 ---
 
-Let me know if you'd like a developer version, or a diagram for how the seasonality detection works internally!
+Let me know if you need a visual chart, flow diagram, or want to break this into developer sub-tasks for Jira or project tools.
 
