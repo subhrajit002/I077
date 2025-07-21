@@ -1,70 +1,303 @@
-Perfect! Based on your explanation (without directly using your examples), here is a professional, clear, and complete User Story for the Seasonality Component, written in the format your team follows:
+import React, { useState } from 'react';
 
+export default function FolderBuilder() {
+    const [menuData, setMenuData] = useState([]);
+    const [navPane, setNavPane] = useState([]);
+    const dropdownOptions = ['Option A', 'Option B', 'Option C'];
 
----
+    const createNewField = (parentId = null) => {
+        return {
+            id: Date.now().toString(),
+            displayName: '',
+            hasSubModel: null,
+            selectedItems: [],
+            children: [],
+            parentId,
+        };
+    };
 
-📄 User Story: Dynamic Seasonality Adjustment for Demand Forecasting
+    const handleAddMainFolder = () => {
+        const newField = createNewField();
+        setMenuData([...menuData, newField]);
+    };
 
+    const handleInputChange = (fieldId, key, value) => {
+        setMenuData(prevData => {
+            const updateRecursive = items => {
+                return items.map(item => {
+                    if (item.id === fieldId) {
+                        const updatedItem = { ...item, [key]: value };
+                        if (key === 'hasSubModel' && value === false) {
+                            updatedItem.children = [];
+                        }
+                        return updatedItem;
+                    }
+                    if (item.children.length > 0) {
+                        return { ...item, children: updateRecursive(item.children) };
+                    }
+                    return item;
+                });
+            };
+            return updateRecursive(prevData);
+        });
+    };
 
----
+    const handleAddSelection = (fieldId, value) => {
+        if (!value) return;
+        setMenuData(prevData => {
+            const updateRecursive = items => {
+                return items.map(item => {
+                    if (item.id === fieldId) {
+                        return {
+                            ...item,
+                            selectedItems: item.selectedItems.includes(value)
+                                ? item.selectedItems
+                                : [...item.selectedItems, value],
+                        };
+                    }
+                    if (item.children.length > 0) {
+                        return { ...item, children: updateRecursive(item.children) };
+                    }
+                    return item;
+                });
+            };
+            return updateRecursive(prevData);
+        });
+    };
 
-✅ Overview
+    const handleRemoveSelection = (fieldId, itemToRemove) => {
+        setMenuData(prevData => {
+            const updateRecursive = items => {
+                return items.map(item => {
+                    if (item.id === fieldId) {
+                        return {
+                            ...item,
+                            selectedItems: item.selectedItems.filter(item => item !== itemToRemove),
+                        };
+                    }
+                    if (item.children.length > 0) {
+                        return { ...item, children: updateRecursive(item.children) };
+                    }
+                    return item;
+                });
+            };
+            return updateRecursive(prevData);
+        });
+    };
 
-The system should detect and incorporate dynamic seasonality patterns into demand forecasting. These patterns refer to recurring demand fluctuations caused by seasonal changes or events that do not occur in fixed weeks or months every year. Since the timing of seasons and events can shift across years, the system must be capable of recognizing and adapting to these changes. This ensures that demand predictions remain accurate even when seasonal influences move on the calendar.
+    const handleAddChild = parentId => {
+        const child = createNewField(parentId);
+        setMenuData(prevData => {
+            const updateRecursive = items => {
+                return items.map(item => {
+                    if (item.id === parentId) {
+                        return {
+                            ...item,
+                            hasSubModel: true,
+                            children: [...item.children, child],
+                        };
+                    }
+                    if (item.children.length > 0) {
+                        return { ...item, children: updateRecursive(item.children) };
+                    }
+                    return item;
+                });
+            };
+            return updateRecursive(prevData);
+        });
+    };
 
+    const renderForm = (field, level = 0) => {
+        const paddingLeft = level * 16;
+        return (
+            <div
+                key={field.id}
+                style={{ marginLeft: `${paddingLeft}px` }}
+                className="border rounded p-4 my-2 bg-white shadow"
+            >
+                <div className="mb-2">
+                    <label className="font-semibold mr-2">File Name:</label>
+                    <input
+                        type="text"
+                        value={field.displayName}
+                        onChange={e => handleInputChange(field.id, 'displayName', e.target.value)}
+                        className="border px-2 py-1 rounded w-64"
+                    />
+                </div>
 
----
+                <div className="mb-2">
+                    <label className="font-semibold mr-2">Modify:</label>
+                    <button
+                        onClick={() => handleInputChange(field.id, 'hasSubModel', true)}
+                        className={`px-3 py-1 rounded mr-2 ${field.hasSubModel ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                            }`}
+                    >
+                        Yes
+                    </button>
+                    <button
+                        onClick={() => handleInputChange(field.id, 'hasSubModel', false)}
+                        className={`px-3 py-1 rounded ${field.hasSubModel === false ? 'bg-red-500 text-white' : 'bg-gray-200'
+                            }`}
+                    >
+                        No
+                    </button>
+                </div>
 
-⚙️ Functional Requirements
+                {!field.hasSubModel && (
+                    <div className="mb-2">
+                        <label className="font-semibold mr-2">Options:</label>
+                        <select
+                            value=""
+                            onChange={e => handleAddSelection(field.id, e.target.value)}
+                            className="border rounded px-2 py-1"
+                        >
+                            <option value="">Select an option to add</option>
+                            {dropdownOptions.map(opt => (
+                                <option key={opt} value={opt}>
+                                    {opt}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="mt-2">
+                            {field.selectedItems?.map((item, index) => (
+                                <div key={index} className="inline-block bg-gray-100 px-2 py-1 rounded mr-2 mb-2">
+                                    {item}
+                                    <button
+                                        onClick={() => handleRemoveSelection(field.id, item)}
+                                        className="ml-1 text-red-500"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
-The system must identify recurring seasonal patterns from historical demand data across multiple years.
+                {field.hasSubModel && (
+                    <button
+                        onClick={() => handleAddChild(field.id)}
+                        className="bg-green-500 text-white px-3 py-1 rounded"
+                    >
+                        + Add Folder
+                    </button>
+                )}
 
-Seasonal windows must be detected based on actual calendar dates rather than static week or month numbers.
+                {field.children.map(child => renderForm(child, level + 1))}
+            </div>
+        );
+    };
 
-The model must apply a week shifting logic to account for year-to-year variations in seasonal timing.
+    const mergeIntoNavPane = (existingNavPane, newItems) => {
+        const merged = JSON.parse(JSON.stringify(existingNavPane));
 
-If a seasonal event or pattern appears in different months or weeks in different years, the system should align these instances dynamically and learn the common demand behavior.
+        const findItem = (items, itemToFind) => {
+            // First try to find by ID
+            for (const item of items) {
+                if (item.id === itemToFind.id) return { item, items };
+            }
 
-The system should handle varying lengths of seasonal periods — short events (like festivals) or long ranges (like summer/winter sales).
+            // Then try to find by name and parentId
+            for (const item of items) {
+                if (
+                    item.displayName === itemToFind.displayName &&
+                    item.parentId === itemToFind.parentId
+                ) {
+                    return { item, items };
+                }
+            }
 
-The forecast engine must adjust future predictions using the learned seasonal effects for corresponding periods in the forecast horizon.
+            return { item: null, items };
+        };
 
-Seasonal impacts should be applied in a modular way, allowing them to be analyzed, tuned, or removed if needed.
+        const mergeItems = (existing, newItem) => {
+            return {
+                ...existing,
+                ...newItem,
+                selectedItems: [...new Set([...existing.selectedItems, ...newItem.selectedItems])],
+                children: mergeChildren(existing.children, newItem.children),
+                hasSubModel: existing.hasSubModel || newItem.hasSubModel,
+            };
+        };
 
-The system should be able to handle years with both 52 and 53 weeks without misalignment of seasonal patterns.
+        const mergeChildren = (existingChildren, newChildren) => {
+            const result = [...existingChildren];
+            newChildren.forEach(newChild => {
+                const { item: existingChild } = findItem(result, newChild);
+                if (existingChild) {
+                    const index = result.findIndex(c => c.id === existingChild.id);
+                    result[index] = mergeItems(existingChild, newChild);
+                } else {
+                    result.push(newChild);
+                }
+            });
+            return result;
+        };
 
+        newItems.forEach(newItem => {
+            const { item: existingItem, items } = findItem(merged, newItem);
+            if (existingItem) {
+                const index = items.findIndex(i => i.id === existingItem.id);
+                items[index] = mergeItems(existingItem, newItem);
+            } else {
+                merged.push(newItem);
+            }
+        });
 
+        return merged;
+    };
 
----
+    const handleSave = () => {
+        setNavPane(prev => mergeIntoNavPane(prev, menuData));
+        setMenuData([]);
+    };
 
-🎯 Acceptance Criteria
+    const renderNavPane = (data, level = 0) => {
+        const paddingLeft = level * 16;
+        return (
+            <ul style={{ marginLeft: `${paddingLeft}px` }}>
+                {data.map(item => (
+                    <li key={item.id} className="my-1">
+                        <span className="text-blue-600 cursor-pointer">
+                            {item.displayName || 'Untitled'}
+                        </span>
+                        {item.hasSubModel && renderNavPane(item.children, level + 1)}
+                        {!item.hasSubModel && item.selectedItems?.length > 0 && (
+                            <div className="text-sm text-gray-600 pl-2">
+                                {item.selectedItems.map((sel, idx) => (
+                                    <span key={idx} className="mr-2">✔ {sel}</span>
+                                ))}
+                            </div>
+                        )}
+                    </li>
+                ))}
+            </ul>
+        );
+    };
 
-✅ The system detects and learns seasonal demand spikes and drops from historical data.
-
-✅ Learned seasonal patterns are based on calendar date alignment, not static week numbers.
-
-✅ When the same seasonal event shifts its timing across years, the model adjusts the pattern using week shifting logic.
-
-✅ Seasonal windows are flexible in length and can span multiple weeks.
-
-✅ Forecast output reflects seasonal demand adjustments accurately in future predictions.
-
-✅ The system handles 52-week and 53-week years without breaking the alignment of seasonal data.
-
-✅ Seasonal effects are stored and applied as separate layers in the model to enable transparency and explainability.
-
-
-
----
-
-💬 Description (In Simple Words)
-
-Some demand patterns repeat every year, like high sales during certain seasons or events. But the timing of these seasons or events may change slightly each year — sometimes they come earlier, sometimes later. This makes it hard to capture seasonality using fixed months or weeks.
-
-The system should be smart enough to learn these shifting seasonal patterns from past data, understand when they usually happen (even if the timing shifts), and apply that learning to forecast future demand more accurately. This ensures that even when seasons or events move, the system still knows what kind of demand change to expect and when to apply it.
-
-
----
-
-Let me know if you need a visual chart, flow diagram, or want to break this into developer sub-tasks for Jira or project tools.
-
+    return (
+        <div className="flex min-h-screen bg-gray-100">
+            <div className="w-1/4 bg-white border-r p-4">
+                <h2 className="text-lg font-bold flex items-center mb-4">📁 Nav Pane</h2>
+                {renderNavPane(navPane)}
+            </div>
+            <div className="flex-1 p-4">
+                <button
+                    onClick={handleAddMainFolder}
+                    className="bg-green-600 text-white px-4 py-2 rounded mb-4 flex items-center gap-2"
+                >
+                    ➕ Add Main Folder
+                </button>
+                {menuData.map(field => renderForm(field))}
+                {menuData.length > 0 && (
+                    <button
+                        onClick={handleSave}
+                        className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
+                    >
+                        💾 Save
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
