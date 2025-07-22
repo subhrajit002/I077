@@ -1,86 +1,10 @@
-const saveMenuData = () => {
-  // 1. Create a fresh sequence starting from highest existing seq + 1
-  const getMaxSeq = (items) => {
-    let max = 0;
-    items.forEach(item => {
-      if (item.seq && parseInt(item.seq) > max) max = parseInt(item.seq);
-      if (item.children) {
-        const childMax = getMaxSeq(item.children);
-        if (childMax > max) max = childMax;
-      }
-    });
-    return max;
-  };
-  
-  let currentSeq = getMaxSeq(navPane);
+I have implemented a drag-and-drop functionality that allows me to move one folder inside another, or place one folder above or below another. However, there is an issue:
 
-  // 2. Merge data while preserving hierarchy
-  const mergeWithSequencing = (existingItems, newItems, parentId = null) => {
-    const merged = [...existingItems];
-    
-    newItems.forEach(newItem => {
-      // Find matching existing item (by ID or name+parent)
-      const existingIndex = merged.findIndex(existing => 
-        existing.id === newItem.id || 
-        (existing.displayName === newItem.displayName && existing.parentId === parentId)
-      );
+If a folder is at the very top of the list, I cannot drag another folder above it.
 
-      if (existingIndex >= 0) {
-        // Update existing item
-        currentSeq++;
-        merged[existingIndex] = {
-          ...merged[existingIndex],
-          ...newItem,
-          seq: currentSeq.toString(),
-          children: mergeWithSequencing(merged[existingIndex].children, newItem.children, newItem.id)
-        };
-      } else {
-        // Add new item with proper sequencing
-        currentSeq++;
-        merged.push({
-          ...newItem,
-          seq: currentSeq.toString(),
-          parentId,
-          children: mergeWithSequencing([], newItem.children, newItem.id)
-        });
-      }
-    });
+Similarly, if a folder is at the very bottom, I cannot drop another folder below it.
 
-    return merged;
-  };
 
-  const mergedData = mergeWithSequencing(navPane, menuData);
+I want to be able to drag and drop folders anywhere — above, below, or inside any folder — without these restrictions.
 
-  // 3. Prepare API payload
-  const traverseMenu = (items, subLevel = 0) => {
-    return items.flatMap(item => {
-      const type = item.hasSubModel ? "Folder" : "UG_Instance";
-      const baseItem = {
-        userid,
-        module: 'Dp',
-        type,
-        instance_name: item.hasSubModel ? item.displayName : item.selectedItems[0] || null,
-        seq: item.seq,
-        sub_level: subLevel.toString(),
-        display_name: item.displayName,
-        id: item.id
-      };
-
-      const children = item.hasSubModel && item.children.length > 0 
-        ? traverseMenu(item.children, subLevel + 1)
-        : [];
-
-      return [baseItem, ...children];
-    });
-  };
-
-  const payload = traverseMenu(mergedData);
-  console.log('Final Payload with Sequencing:', payload);
-
-  // 4. Save to backend
-  addHavSettings(payload);
-  
-  // 5. Update state
-  setNavPane(mergedData);
-  setMenuData([]);
-};
+Please help me fix this.
