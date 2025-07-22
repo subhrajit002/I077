@@ -1,162 +1,51 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+const mergeIntoNavPane = (existingNavPane, newItems) => {
+  const merged = JSON.parse(JSON.stringify(existingNavPane));
 
-export default function FolderBuilder() {
-  const [menuData, setMenuData] = useState([]);
-  const [navPane, setNavPane] = useState([]);
-  const dropdownOptions = ['Option A', 'Option B', 'Option C'];
-  const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem('token');
-  const userid = localStorage.getItem('userid');
+  // Improved find function that checks hierarchy
+  const findItem = (items, itemToFind) => {
+    // First try to find by ID
+    for (const item of items) {
+      if (item.id === itemToFind.id) return { item, items };
+    }
 
-  const createNewField = (parentId = null) => {
-    return {
-      id: Date.now().toString(),
-      displayName: '',
-      hasSubModel: null,
-      selectedItems: [],
-      children: [],
-      parentId,
-    };
-  };
-
-  const increasedLoading = () => setLoading(true);
-  const decreasedLoading = () => setLoading(false);
-
-  const addHavSettings = (payload) => {
-    const url = process.env.REACT_APP_API_URL + "/addHavGlobal";
-    increasedLoading();
-    axios
-      .post(url, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .catch((err) => console.error("Error", err))
-      .finally(() => {
-        decreasedLoading();
-      });
-  };
-
-  const saveMenuData = () => {
-    let currentSeq = Math.max(...navPane.map((item) => parseInt(item.seq || 0)), 0);
-    
-    const traverseMenu = (menu, subLevel = 0) => {
-      let payload = [];
-      menu.forEach((item) => {
-        currentSeq++;
-        const type = item.hasSubModel ? "Folder" : "UG_Instance";
-        payload.push({
-          userid: userid,
-          module: 'Dp',
-          type,
-          instance_name: item.hasSubModel
-            ? item.displayName
-            : item.selectedItems[0] || null,
-          seq: currentSeq.toString(),
-          sub_level: subLevel.toString(),
-          display_name: item.displayName || null,
-        });
-        
-        if (item.hasSubModel && item.children.length > 0) {
-          payload = payload.concat(traverseMenu(item.children, subLevel + 1));
-        }
-      });
-      return payload;
-    };
-
-    const payload = traverseMenu(menuData);
-    addHavSettings(payload);
-    setNavPane(prev => mergeIntoNavPane(prev, menuData));
-    setMenuData([]);
-  };
-
-  const mergeIntoNavPane = (existingNavPane, newItems) => {
-    const merged = JSON.parse(JSON.stringify(existingNavPane));
-
-    const findItem = (items, itemToFind) => {
-      for (const item of items) {
-        if (item.id === itemToFind.id) return { item, items };
-      }
-      
-      for (const item of items) {
-        if (
-          item.displayName === itemToFind.displayName &&
-          item.parentId === itemToFind.parentId
-        ) {
+    // Then try to find by name and exact parent chain
+    for (const item of items) {
+      if (item.displayName === itemToFind.displayName) {
+        // Verify full parent chain matches
+        if (isSameHierarchy(item, itemToFind)) {
           return { item, items };
         }
       }
-      
-      return { item: null, items };
-    };
-
-    const mergeItems = (existing, newItem) => {
-      return {
-        ...existing,
-        ...newItem,
-        selectedItems: [...new Set([...existing.selectedItems, ...newItem.selectedItems])],
-        children: mergeChildren(existing.children, newItem.children),
-        hasSubModel: existing.hasSubModel || newItem.hasSubModel,
-      };
-    };
-
-    const mergeChildren = (existingChildren, newChildren) => {
-      const result = [...existingChildren];
-      newChildren.forEach(newChild => {
-        const { item: existingChild } = findItem(result, newChild);
-        if (existingChild) {
-          const index = result.findIndex(c => c.id === existingChild.id);
-          result[index] = mergeItems(existingChild, newChild);
-        } else {
-          result.push(newChild);
-        }
-      });
-      return result;
-    };
-
-    newItems.forEach(newItem => {
-      const { item: existingItem, items } = findItem(merged, newItem);
-      if (existingItem) {
-        const index = items.findIndex(i => i.id === existingItem.id);
-        items[index] = mergeItems(existingItem, newItem);
-      } else {
-        merged.push(newItem);
+      if (item.children.length > 0) {
+        const found = findItem(item.children, itemToFind);
+        if (found.item) return found;
       }
-    });
-
-    return merged;
+    }
+    return { item: null, items };
   };
 
-  // [Rest of your component code remains the same, including render methods]
-  // Keep all your existing handleAddMainFolder, handleInputChange, etc. functions
-  // Keep your renderForm and renderNavPane methods exactly as they were
+  // Helper to verify parent hierarchy
+  const isSameHierarchy = (item1, item2) => {
+    if (item1.parentId !== item2.parentId) return false;
+    if (!item1.parentId && !item2.parentId) return true;
+    
+    // Find and compare parents recursively
+    const findParent = (items, id) => {
+      for (const item of items) {
+        if (item.id === id) return item;
+        if (item.children.length > 0) {
+          const found = findParent(item.children, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
 
-  return (
-    <div className="flex min-h-screen bg-gray-100">
-      <div className="w-1/4 bg-white border-r p-4">
-        <h2 className="text-lg font-bold flex items-center mb-4">📁 Nav Pane</h2>
-        {renderNavPane(navPane)}
-      </div>
-      <div className="flex-1 p-4">
-        <button
-          onClick={handleAddMainFolder}
-          className="bg-green-600 text-white px-4 py-2 rounded mb-4 flex items-center gap-2"
-          disabled={loading}
-        >
-          {loading ? 'Loading...' : '➕ Add Main Folder'}
-        </button>
-        {menuData.map(field => renderForm(field))}
-        {menuData.length > 0 && (
-          <button
-            onClick={saveMenuData}  // Changed from handleSave to saveMenuData
-            className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
-            disabled={loading}
-          >
-            {loading ? 'Saving...' : '💾 Save'}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
+    const parent1 = findParent(merged, item1.parentId);
+    const parent2 = findParent(merged, item2.parentId);
+    
+    return parent1 && parent2 && parent1.displayName === parent2.displayName;
+  };
+
+  // Rest of your merge logic...
+};
