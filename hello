@@ -1,51 +1,86 @@
-const mergeIntoNavPane = (existingNavPane, newItems) => {
-  const merged = JSON.parse(JSON.stringify(existingNavPane));
-
-  // Improved find function that checks hierarchy
-  const findItem = (items, itemToFind) => {
-    // First try to find by ID
-    for (const item of items) {
-      if (item.id === itemToFind.id) return { item, items };
-    }
-
-    // Then try to find by name and exact parent chain
-    for (const item of items) {
-      if (item.displayName === itemToFind.displayName) {
-        // Verify full parent chain matches
-        if (isSameHierarchy(item, itemToFind)) {
-          return { item, items };
-        }
+const saveMenuData = () => {
+  // 1. Create a fresh sequence starting from highest existing seq + 1
+  const getMaxSeq = (items) => {
+    let max = 0;
+    items.forEach(item => {
+      if (item.seq && parseInt(item.seq) > max) max = parseInt(item.seq);
+      if (item.children) {
+        const childMax = getMaxSeq(item.children);
+        if (childMax > max) max = childMax;
       }
-      if (item.children.length > 0) {
-        const found = findItem(item.children, itemToFind);
-        if (found.item) return found;
+    });
+    return max;
+  };
+  
+  let currentSeq = getMaxSeq(navPane);
+
+  // 2. Merge data while preserving hierarchy
+  const mergeWithSequencing = (existingItems, newItems, parentId = null) => {
+    const merged = [...existingItems];
+    
+    newItems.forEach(newItem => {
+      // Find matching existing item (by ID or name+parent)
+      const existingIndex = merged.findIndex(existing => 
+        existing.id === newItem.id || 
+        (existing.displayName === newItem.displayName && existing.parentId === parentId)
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing item
+        currentSeq++;
+        merged[existingIndex] = {
+          ...merged[existingIndex],
+          ...newItem,
+          seq: currentSeq.toString(),
+          children: mergeWithSequencing(merged[existingIndex].children, newItem.children, newItem.id)
+        };
+      } else {
+        // Add new item with proper sequencing
+        currentSeq++;
+        merged.push({
+          ...newItem,
+          seq: currentSeq.toString(),
+          parentId,
+          children: mergeWithSequencing([], newItem.children, newItem.id)
+        });
       }
-    }
-    return { item: null, items };
+    });
+
+    return merged;
   };
 
-  // Helper to verify parent hierarchy
-  const isSameHierarchy = (item1, item2) => {
-    if (item1.parentId !== item2.parentId) return false;
-    if (!item1.parentId && !item2.parentId) return true;
-    
-    // Find and compare parents recursively
-    const findParent = (items, id) => {
-      for (const item of items) {
-        if (item.id === id) return item;
-        if (item.children.length > 0) {
-          const found = findParent(item.children, id);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
+  const mergedData = mergeWithSequencing(navPane, menuData);
 
-    const parent1 = findParent(merged, item1.parentId);
-    const parent2 = findParent(merged, item2.parentId);
-    
-    return parent1 && parent2 && parent1.displayName === parent2.displayName;
+  // 3. Prepare API payload
+  const traverseMenu = (items, subLevel = 0) => {
+    return items.flatMap(item => {
+      const type = item.hasSubModel ? "Folder" : "UG_Instance";
+      const baseItem = {
+        userid,
+        module: 'Dp',
+        type,
+        instance_name: item.hasSubModel ? item.displayName : item.selectedItems[0] || null,
+        seq: item.seq,
+        sub_level: subLevel.toString(),
+        display_name: item.displayName,
+        id: item.id
+      };
+
+      const children = item.hasSubModel && item.children.length > 0 
+        ? traverseMenu(item.children, subLevel + 1)
+        : [];
+
+      return [baseItem, ...children];
+    });
   };
 
-  // Rest of your merge logic...
+  const payload = traverseMenu(mergedData);
+  console.log('Final Payload with Sequencing:', payload);
+
+  // 4. Save to backend
+  addHavSettings(payload);
+  
+  // 5. Update state
+  setNavPane(mergedData);
+  setMenuData([]);
 };
