@@ -1,10 +1,136 @@
-I have implemented a drag-and-drop functionality that allows me to move one folder inside another, or place one folder above or below another. However, there is an issue:
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-If a folder is at the very top of the list, I cannot drag another folder above it.
+export default function PrioritizationRule() {
+  const [priorityConfig, setPriorityConfig] = useState([
+    { id: 1, label: "Demand Priority", color: "primary" },
+    { id: 2, label: "Location Priority", color: "secondary" },
+    { id: 3, label: "Need Delivery Date", color: "success" },
+    { id: 4, label: "Need Order Date", color: "info" },
+    { id: 5, label: "Scheduled Delivery Date", color: "warning" },
+    { id: 6, label: "Scheduled Order Date", color: "dark" },
+  ]);
 
-Similarly, if a folder is at the very bottom, I cannot drop another folder below it.
+  const [demandConfig, setDemandConfig] = useState([
+    { id: 1, label: "Base Forecast" },
+    { id: 2, label: "Promo Forecast" },
+    { id: 3, label: "Demand Forecast" },
+    { id: 4, label: "Planned Forecast" },
+    { id: 5, label: "Out of Stock Location" },
+    { id: 6, label: "Safety Stock" },
+  ]);
 
+  const [tableData] = useState([
+    { priority: 1, location: "Str1", demandType: "Base Forecast", qty: 100, allocated: 100, needDate: "2025-08-05", deployRule: "DemandLocation", status: "Filled" },
+    { priority: 1, location: "Str1", demandType: "Base Forecast", qty: 75, allocated: 70, needDate: "2025-08-05", deployRule: "DemandLocation", status: "Filled" },
+    { priority: 1, location: "Str1", demandType: "Base Forecast", qty: 150, allocated: 0, needDate: "2025-08-05", deployRule: "DemandLocation", status: "Unfilled" },
+    { priority: 1, location: "Str1", demandType: "Base Forecast", qty: 50, allocated: 0, needDate: "2025-08-05", deployRule: "DemandLocation", status: "Unfilled" },
+    { priority: 1, location: "Str1", demandType: "Base Forecast", qty: 100, allocated: 100, needDate: "2025-08-05", deployRule: "DemandLocation", status: "Filled" },
+  ]);
 
-I want to be able to drag and drop folders anywhere — above, below, or inside any folder — without these restrictions.
+  const [auditHistory] = useState([
+    { id: "0001", rule: "High Demand", action: "Created", user: "userName", time: "2025-08-05 08:45pm" },
+    { id: "0002", rule: "High Demand", action: "Created", user: "userName", time: "2025-08-05 08:45pm" },
+    { id: "0003", rule: "High Demand", action: "Created", user: "userName", time: "2025-08-05 08:45pm" },
+    { id: "0004", rule: "High Demand", action: "Created", user: "userName", time: "2025-08-05 08:45pm" },
+  ]);
 
-Please help me fix this.
+  return (
+    <div className="container-fluid p-4">
+      <div className="row">
+        {/* Left - Priority Configuration */}
+        <div className="col-md-4">
+          <h5 className="fw-bold mb-3">Priority Configuration</h5>
+          <div className="d-flex flex-column gap-2">
+            {priorityConfig.map((item) => (
+              <div key={item.id} className={`p-2 rounded border bg-light`}>
+                <span className={`badge bg-${item.color} me-2`}>{item.id}</span>
+                {item.label}
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 d-flex gap-2">
+            <button className="btn btn-primary btn-sm">Apply Rule</button>
+            <button className="btn btn-outline-primary btn-sm">Save Profile</button>
+          </div>
+
+          <hr />
+          <h6 className="fw-bold mt-3">Demand Priority Configuration</h6>
+          <div className="d-flex flex-column gap-2 mt-2">
+            {demandConfig.map((item) => (
+              <div key={item.id} className="d-flex align-items-center justify-content-between border p-2 rounded bg-light">
+                <span>{item.label}</span>
+                <input type="number" min="1" className="form-control form-control-sm w-25" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right - Table & Audit */}
+        <div className="col-md-8">
+          <h5 className="fw-bold mb-3">Demand List</h5>
+          <div className="table-responsive border rounded">
+            <table className="table table-sm table-striped table-hover mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th>Priority</th>
+                  <th>Location</th>
+                  <th>Demand Type</th>
+                  <th>Demand Qty</th>
+                  <th>Allocated</th>
+                  <th>Need Date</th>
+                  <th>Deploy Rule</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableData.map((row, idx) => (
+                  <tr key={idx}>
+                    <td>{row.priority}</td>
+                    <td>{row.location}</td>
+                    <td>{row.demandType}</td>
+                    <td>{row.qty}</td>
+                    <td>{row.allocated}</td>
+                    <td>{row.needDate}</td>
+                    <td>{row.deployRule}</td>
+                    <td>
+                      <span className={`badge ${row.status === "Filled" ? "bg-success" : "bg-danger"}`}>
+                        {row.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h6 className="fw-bold mt-4">Audit & History</h6>
+          <div className="table-responsive border rounded">
+            <table className="table table-sm table-striped table-hover mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Rule Name</th>
+                  <th>Action</th>
+                  <th>User</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditHistory.map((item, idx) => (
+                  <tr key={idx}>
+                    <td>{item.id}</td>
+                    <td>{item.rule}</td>
+                    <td>{item.action}</td>
+                    <td>{item.user}</td>
+                    <td>{item.time}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
