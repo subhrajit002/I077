@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
+import "./Priority-Rule.css";
 
-export default function DemandPriorityConfiguration() {
+export default function PriorityRule() {
   const [demandConfig] = useState([
     { id: 1, label: "Base Forecast", locations: ["Str1:1", "Str2:2"] },
     { id: 2, label: "Promo Forecast", locations: ["Str3:3", "Str4:4"] },
@@ -12,43 +12,94 @@ export default function DemandPriorityConfiguration() {
   ]);
 
   return (
-    <div className="p-3 border rounded bg-white">
-      <h6 className="fw-bold mb-2">Demand Priority Configuration</h6>
-      <p className="text-muted small mb-3">Set priorities for demand types</p>
+    <div className="card">
+      <h6 className="fw-bold mb-3">Demand Priority Configuration</h6>
+      <p className="subhead">Arrange factor by Priority</p>
 
-      {demandConfig.map((item) => (
-        <div
-          key={item.id}
-          className="d-flex align-items-start justify-content-between border-bottom py-2"
-        >
-          {/* Left: Demand Type & Priority Number */}
-          <div className="d-flex align-items-center gap-2">
-            <span>{item.label}</span>
-          </div>
-          <div className="d-flex align-items-center gap-4">
-            {/* Priority Badge */}
-            <span className="badge bg-primary px-3 py-2 fs-6">{item.id}</span>
+      <div className="d-flex">
+        {/* LEFT SIDE: Demand Priorities */}
+        <div className="left-side me-2" style={{ flex: 0.5 }}>
+          {demandConfig.map((item) => (
+            <div
+              key={item.id}
+              className="d-flex align-items-center justify-content-between border p-2 rounded mb-2 bg-light"
+            >
+              <span>{item.label}</span>
+              <span
+                className="badge badge-square me-3"
+                style={{ background: "#1C72A1", color: "white" }}
+              >
+                {item.id}
+              </span>
+            </div>
+          ))}
+        </div>
 
-            {/* Location Priorities */}
-            <div className="d-flex flex-wrap gap-2">
-              {item.locations.length > 0 ? (
-                item.locations.map((loc, idx) => (
+        {/* RIGHT SIDE: Location Priorities */}
+        <div className="right-side ms-2 border rounded bg-light" style={{ flex: 0.5 }}>
+          <h5 className="right_side_heading">Location Priorities</h5>
+          <div className="d-flex flex-wrap gap-2">
+            {demandConfig.map((item) =>
+              item.locations.length > 0 ? (
+                item.locations.map((loc, index) => (
                   <span
-                    key={idx}
-                    className="border rounded px-2 py-1 small bg-light"
+                    key={`${item.id}-${index}`}
+                    className="border rounded px-2 py-1 small bg-white"
                   >
                     {loc}
                   </span>
                 ))
               ) : (
-                <span className="text-muted small fst-italic">
-                  No locations
+                <span
+                  key={item.id}
+                  className="text-muted small fst-italic w-100"
+                >
+                  No locations for {item.label}
                 </span>
-              )}
-            </div>
+              )
+            )}
           </div>
         </div>
-      ))}
+      </div>
     </div>
   );
+}
+
+
+.card {
+  padding: 10px;
+  box-shadow: 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid #d9d9d9;
+  border-radius: 5px;
+  background: white;
+  font-family: "Sansation_Regular";
+  margin-bottom: 4%;
+}
+
+.subhead {
+  font-size: 14px;
+  color: #a9a7a7;
+}
+
+.badge-square {
+  border-radius: 0px !important;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+}
+
+.right-side {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  padding: 8px;
+}
+
+.right_side_heading {
+  font-size: 14px;
+  padding: 2px;
 }
