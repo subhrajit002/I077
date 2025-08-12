@@ -1,105 +1,464 @@
-import React, { useState } from "react";
-import "./Priority-Rule.css";
+@Transactional
+public void insertDeployProfile(RPDeployProfileModel model) {
+    try {
+        // Convert rule IDs to string for storage
+        String deployRule = model.getSelectedRuleIds() != null
+                ? String.join(",", model.getSelectedRuleIds().stream()
+                    .map(String::valueOf)
+                    .toArray(String[]::new))
+                : "";
 
-export default function PriorityRule() {
-  const [demandConfig] = useState([
-    { id: 1, label: "Base Forecast", locations: ["Str1:1", "Str2:2"] },
-    { id: 2, label: "Promo Forecast", locations: ["Str3:3", "Str4:4"] },
-    { id: 3, label: "Demand Forecast", locations: [] },
-    { id: 4, label: "Planned Forecast", locations: ["Str5:5", "Str6:6"] },
-    { id: 5, label: "Out of Stock Location", locations: [] },
-    { id: 6, label: "Safety Stock", locations: [] },
-  ]);
+        String dmdPtyConfig = model.getDmdPtyConfig() != null ? model.getDmdPtyConfig() : "";
+
+        // Generate new deployProfileId
+        String latestIdSql = "SELECT deployprofileid FROM sclrp.rp_deploy_profile " +
+                "WHERE deployprofileid LIKE 'DEPLOY%' ORDER BY deployprofileid DESC LIMIT 1";
+
+        String latestId;
+        try {
+            latestId = (String) entityManager.createNativeQuery(latestIdSql).getSingleResult();
+        } catch (Exception e) {
+            latestId = null;
+        }
+
+        int nextNumber = 1;
+        if (latestId != null && latestId.startsWith("DEPLOY")) {
+            try {
+                nextNumber = Integer.parseInt(latestId.substring(6)) + 1;
+            } catch (NumberFormatException e) {
+                System.out.println("Failed to parse deployprofileid: " + latestId);
+            }
+        }
+        String newDeployProfileId = "DEPLOY" + nextNumber;
+
+        // Insert into rp_deploy_profile
+        String insertProfileSql = "INSERT INTO sclrp.rp_deploy_profile " +
+                "(deployrule, dmd_pty_config, priority_dur, deployprofileid) " +
+                "VALUES (:deployRule, :dmdPtyConfig, :priorityDur, :deployProfileId)";
+        entityManager.createNativeQuery(insertProfileSql)
+                .setParameter("deployRule", deployRule)
+                .setParameter("dmdPtyConfig", dmdPtyConfig)
+                .setParameter("priorityDur", model.getPriorityDur())
+                .setParameter("deployProfileId", newDeployProfileId)
+                .executeUpdate();
+
+        // Insert demand priorities if provided
+        if (model.getDemandPriorities() != null && !model.getDemandPriorities().isEmpty()) {
+            String insertDemandSql = "INSERT INTO sclrp.rp_dmd_pty_config " +
+                    "(dmd_pty_config, dmd_type, channel, pty) " +
+                    "VALUES (:dmdPtyConfig, :dmdType, :channel, :pty)";
+            for (RPDeployProfileModel.DemandPriority dp : model.getDemandPriorities()) {
+                entityManager.createNativeQuery(insertDemandSql)
+                        .setParameter("dmdPtyConfig", dmdPtyConfig)
+                        .setParameter("dmdType", dp.getDmdType())
+                        .setParameter("channel", dp.getChannel())
+                        .setParameter("pty", dp.getPty())
+                        .executeUpdate();
+            }
+        }
+
+        // Update multiple locations for single productId
+        String updateLocationPrioritySql = "UPDATE sclbl.bl_location " +
+                "SET loc_priority = :locPriority WHERE location_id = :locationId";
+
+        String updateSkuParamSql = "UPDATE sclrp.rp_sku_replen_param " +
+                "SET deployprofileid = :deployProfileId " +
+                "WHERE location_id = :locationId AND product_id = :productId";
+
+        String planDateSql = "SELECT plan_date FROM sclrp.rp_sku_replen_param " +
+                "WHERE location_id = :locationId AND product_id = :productId LIMIT 1";
+
+        for (RPDeployProfileModel.LocationPriorityDTO loc : model.getLocations()) {
+            // Update location priority
+            entityManager.createNativeQuery(updateLocationPrioritySql)
+                    .setParameter("locPriority", loc.getLocPriority())
+                    .setParameter("locationId", loc.getLocationId())
+                    .executeUpdate();
+
+            // Update SKU replenish param with same deployProfileId
+            entityManager.createNativeQuery(updateSkuParamSql)
+                    .setParameter("deployProfileId", newDeployProfileId)
+                    .setParameter("locationId", loc.getLocationId())
+                    .setParameter("productId", model.getProductId())
+                    .executeUpdate();
+
+            // Calculate priority duration dates per (locationId, productId)
+            try {
+                Date planDate = (Date) entityManager.createNativeQuery(planDateSql)
+                        .setParameter("locationId", loc.getLocationId())
+                        .setParameter("productId", model.getProductId())
+                        .getSingleResult();
+
+                if (planDate != null) {
+                    LocalDate startDate = planDate.toLocalDate();
+                    LocalDate endDate = startDate.plusDays(model.getPriorityDur());
+                    System.out.println("Location " + loc.getLocationId() + ": Priority duration starts " +
+                            startDate + " and ends " + endDate);
+                }
+            } catch (Exception e) {
+                System.out.println("No plan_date found for location " + loc.getLocationId());
+            }
+        }
+
+        System.out.println("Deploy profile and demand priorities inserted successfully.");
+
+    } catch (Exception e) {
+        System.out.println("Error inserting deploy rule: " + e);
+        throw new RuntimeException("Failed to insert deploy rule.", e);
+    }
+}
+
+
+
+{
+  "productId": "P001",
+  "priorityDur": 10,
+  "selectedRuleIds": [1, 2],
+  "dmdPtyConfig": "CFG01",
+  "demandPriorities": [
+    { "dmdType": 1, "channel": "Online", "pty": 1 }
+  ],
+  "locations": [
+    { "locationId": "LOC001", "locPriority": 1 },
+    { "locationId": "LOC002", "locPriority": 2 }
+  ]
+}
+
+
+
+
+
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+export default function DeployConfigForm() {
+  const [products, setProducts] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [priorityConfigs, setPriorityConfigs] = useState([]); // [{id, name}]
+  const [demandTypes, setDemandTypes] = useState([]); // [{id, channel}]
+
+  const [selectedProduct, setSelectedProduct] = useState("");
+  const [selectedLocations, setSelectedLocations] = useState([]);
+  const [priorityData, setPriorityData] = useState([]);
+  const [selectedRuleIds, setSelectedRuleIds] = useState([]);
+  const [selectedDemandTypes, setSelectedDemandTypes] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+
+  // Fetch dropdown data
+  useEffect(() => {
+    axios.get("/api/products").then(res => setProducts(res.data));
+    axios.get("/api/locations").then(res => setLocations(res.data));
+    axios.get("/api/priority-configs").then(res => setPriorityConfigs(res.data)); 
+    axios.get("/api/demand-types").then(res => setDemandTypes(res.data)); 
+  }, []);
+
+  // Product select
+  const handleProductChange = (e) => {
+    setSelectedProduct(e.target.value);
+    setSelectedLocations([]);
+    setPriorityData([]);
+  };
+
+  // Location multi-select
+  const handleLocationChange = (e) => {
+    const selected = Array.from(e.target.selectedOptions, opt => opt.value);
+    setSelectedLocations(selected);
+
+    // Add new priorities for newly selected
+    const updated = [...priorityData];
+    selected.forEach(loc => {
+      if (!updated.find(item => item.locationId === loc)) {
+        updated.push({ locationId: loc, locPriority: "" });
+      }
+    });
+
+    // Remove unselected
+    setPriorityData(updated.filter(item => selected.includes(item.locationId)));
+  };
+
+  // Priority for location
+  const handlePriorityChange = (locId, value) => {
+    setPriorityData(prev =>
+      prev.map(item =>
+        item.locationId === locId ? { ...item, locPriority: Number(value) } : item
+      )
+    );
+  };
+
+  // Priority config checkboxes
+  const handlePriorityConfigChange = (id) => {
+    setSelectedRuleIds(prev =>
+      prev.includes(id) ? prev.filter(rid => rid !== id) : [...prev, id]
+    );
+  };
+
+  // Demand priorities selection
+  const handleDemandTypeChange = (id) => {
+    setSelectedDemandTypes(prev => {
+      if (prev.find(d => d.dmdType === id)) {
+        return prev.filter(d => d.dmdType !== id);
+      } else {
+        return [...prev, { dmdType: id, channel: demandTypes.find(dt => dt.id === id).channel }];
+      }
+    });
+  };
+
+  // Prepare payload & submit
+  const handleSubmit = () => {
+    if (!selectedProduct) {
+      alert("Select a product.");
+      return;
+    }
+    if (priorityData.some(item => item.locPriority === "")) {
+      alert("Set priorities for all selected locations.");
+      return;
+    }
+
+    // Assign pty in order selected
+    const demandPriorities = selectedDemandTypes.map((item, index) => ({
+      dmdType: item.dmdType,
+      channel: item.channel,
+      pty: index + 1
+    }));
+
+    const payload = {
+      productId: selectedProduct,
+      priorityDur: 10, // example static
+      selectedRuleIds: selectedRuleIds,
+      dmdPtyConfig: "CFG01", // example static
+      demandPriorities: demandPriorities,
+      locations: priorityData
+    };
+
+    setLoading(true);
+    axios.post("http://localhost:8080/api/deploy/add", payload)
+      .then(() => {
+        alert("Saved successfully!");
+        setSelectedProduct("");
+        setSelectedLocations([]);
+        setPriorityData([]);
+        setSelectedRuleIds([]);
+        setSelectedDemandTypes([]);
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
+  };
 
   return (
-    <div className="card">
-      <h6 className="fw-bold mb-3">Demand Priority Configuration</h6>
-      <p className="subhead">Arrange factor by Priority</p>
+    <div style={{ padding: 20, maxWidth: 600 }}>
+      <h2>Deploy Configuration</h2>
 
-      <div className="d-flex">
-        {/* LEFT SIDE: Demand Priorities */}
-        <div className="left-side me-2" style={{ flex: 0.5 }}>
-          {demandConfig.map((item) => (
-            <div
-              key={item.id}
-              className="d-flex align-items-center justify-content-between border p-2 rounded mb-2 bg-light"
-            >
-              <span>{item.label}</span>
-              <span
-                className="badge badge-square me-3"
-                style={{ background: "#1C72A1", color: "white" }}
-              >
-                {item.id}
-              </span>
+      {/* Product */}
+      <label>Product:</label>
+      <select value={selectedProduct} onChange={handleProductChange}>
+        <option value="">-- Select Product --</option>
+        {products.map(p => (
+          <option key={p.id} value={p.id}>{p.name}</option>
+        ))}
+      </select>
+
+      {/* Priority Config checkboxes */}
+      <h4>Priority Configuration</h4>
+      {priorityConfigs.map(pc => (
+        <label key={pc.id} style={{ display: "block" }}>
+          <input
+            type="checkbox"
+            checked={selectedRuleIds.includes(pc.id)}
+            onChange={() => handlePriorityConfigChange(pc.id)}
+          />
+          {pc.name}
+        </label>
+      ))}
+
+      {/* Demand priorities checkboxes */}
+      <h4>Demand Priorities</h4>
+      {demandTypes.map(dt => (
+        <label key={dt.id} style={{ display: "block" }}>
+          <input
+            type="checkbox"
+            checked={selectedDemandTypes.some(d => d.dmdType === dt.id)}
+            onChange={() => handleDemandTypeChange(dt.id)}
+          />
+          {dt.name} ({dt.channel})
+        </label>
+      ))}
+
+      {/* Locations */}
+      {selectedProduct && (
+        <>
+          <label>Locations:</label>
+          <select multiple value={selectedLocations} onChange={handleLocationChange}>
+            {locations.map(l => (
+              <option key={l.id} value={l.id}>{l.name}</option>
+            ))}
+          </select>
+        </>
+      )}
+
+      {/* Priority inputs */}
+      {priorityData.length > 0 && (
+        <div>
+          <h4>Set Location Priorities</h4>
+          {priorityData.map(item => (
+            <div key={item.locationId} style={{ marginBottom: 10 }}>
+              <strong>{item.locationId}</strong>
+              <input
+                type="number"
+                value={item.locPriority}
+                placeholder="Priority"
+                onChange={(e) => handlePriorityChange(item.locationId, e.target.value)}
+                style={{ marginLeft: 10, width: 60 }}
+              />
             </div>
           ))}
         </div>
+      )}
 
-        {/* RIGHT SIDE: Location Priorities */}
-        <div className="right-side ms-2 border rounded bg-light" style={{ flex: 0.5 }}>
-          <h5 className="right_side_heading">Location Priorities</h5>
-          <div className="d-flex flex-wrap gap-2">
-            {demandConfig.map((item) =>
-              item.locations.length > 0 ? (
-                item.locations.map((loc, index) => (
-                  <span
-                    key={`${item.id}-${index}`}
-                    className="border rounded px-2 py-1 small bg-white"
-                  >
-                    {loc}
-                  </span>
-                ))
-              ) : (
-                <span
-                  key={item.id}
-                  className="text-muted small fst-italic w-100"
-                >
-                  No locations for {item.label}
-                </span>
-              )
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Submit */}
+      {priorityData.length > 0 && (
+        <button onClick={handleSubmit} disabled={loading}>
+          {loading ? "Saving..." : "Save"}
+        </button>
+      )}
     </div>
   );
 }
 
 
-.card {
-  padding: 10px;
-  box-shadow: 2px 4px rgba(0, 0, 0, 0.1);
-  border: 1.5px solid #d9d9d9;
-  border-radius: 5px;
-  background: white;
-  font-family: "Sansation_Regular";
-  margin-bottom: 4%;
+
+
+@Transactional
+public void insertDeployProfile(RPDeployProfileModel model) {
+    try {
+        // Convert rule IDs to string for storage
+        String deployRule = model.getSelectedRuleIds() != null
+                ? String.join(",", model.getSelectedRuleIds().stream()
+                .map(String::valueOf)
+                .toArray(String[]::new))
+                : "";
+
+        // ---------------------------------------------------
+        // Generate new dmdPtyConfig
+        String latestCfgSql = "SELECT dmd_pty_config FROM sclrp.rp_dmd_pty_config " +
+                              "WHERE dmd_pty_config LIKE 'CFG%' ORDER BY dmd_pty_config DESC LIMIT 1";
+
+        String latestCfg;
+        try {
+            latestCfg = (String) entityManager.createNativeQuery(latestCfgSql).getSingleResult();
+        } catch (Exception e) {
+            latestCfg = null;
+        }
+
+        int nextCfgNum = 1;
+        if (latestCfg != null && latestCfg.startsWith("CFG")) {
+            try {
+                nextCfgNum = Integer.parseInt(latestCfg.substring(3)) + 1;
+            } catch (NumberFormatException e) {
+                System.out.println("Failed to parse dmd_pty_config: " + latestCfg);
+            }
+        }
+        String newDmdPtyConfig = "CFG" + String.format("%03d", nextCfgNum);
+
+        String dmdPtyConfig = newDmdPtyConfig;
+        // ---------------------------------------------------
+
+        // Generate new deployProfileId
+        String latestIdSql = "SELECT deployprofileid FROM sclrp.rp_deploy_profile " +
+                "WHERE deployprofileid LIKE 'DEPLOY%' ORDER BY deployprofileid DESC LIMIT 1";
+
+        String latestId;
+        try {
+            latestId = (String) entityManager.createNativeQuery(latestIdSql).getSingleResult();
+        } catch (Exception e) {
+            latestId = null;
+        }
+
+        int nextNumber = 1;
+        if (latestId != null && latestId.startsWith("DEPLOY")) {
+            try {
+                nextNumber = Integer.parseInt(latestId.substring(6)) + 1;
+            } catch (NumberFormatException e) {
+                System.out.println("Failed to parse deployprofileid: " + latestId);
+            }
+        }
+        String newDeployProfileId = "DEPLOY" + nextNumber;
+
+        // Insert into rp_deploy_profile
+        String insertProfileSql = "INSERT INTO sclrp.rp_deploy_profile " +
+                "(deployrule, dmd_pty_config, priority_dur, deployprofileid) " +
+                "VALUES (:deployRule, :dmdPtyConfig, :priorityDur, :deployProfileId)";
+        entityManager.createNativeQuery(insertProfileSql)
+                .setParameter("deployRule", deployRule)
+                .setParameter("dmdPtyConfig", dmdPtyConfig)
+                .setParameter("priorityDur", model.getPriorityDur())
+                .setParameter("deployProfileId", newDeployProfileId)
+                .executeUpdate();
+
+        // Insert demand priorities if provided
+        if (model.getDemandPriorities() != null && !model.getDemandPriorities().isEmpty()) {
+            String insertDemandSql = "INSERT INTO sclrp.rp_dmd_pty_config " +
+                    "(dmd_pty_config, dmd_type, channel, pty) " +
+                    "VALUES (:dmdPtyConfig, :dmdType, :channel, :pty)";
+            for (RPDeployProfileModel.DemandPriority dp : model.getDemandPriorities()) {
+                entityManager.createNativeQuery(insertDemandSql)
+                        .setParameter("dmdPtyConfig", dmdPtyConfig)
+                        .setParameter("dmdType", dp.getDmdType())
+                        .setParameter("channel", dp.getChannel())
+                        .setParameter("pty", dp.getPty())
+                        .executeUpdate();
+            }
+        }
+
+        // Update multiple locations for single productId
+        String updateLocationPrioritySql = "UPDATE sclbl.bl_location " +
+                "SET loc_priority = :locPriority WHERE location_id = :locationId";
+
+        String updateSkuParamSql = "UPDATE sclrp.rp_sku_replen_param " +
+                "SET deployprofileid = :deployProfileId " +
+                "WHERE location_id = :locationId AND product_id = :productId";
+
+        String planDateSql = "SELECT plan_date FROM sclrp.rp_sku_replen_param " +
+                "WHERE location_id = :locationId AND product_id = :productId LIMIT 1";
+
+        for (RPDeployProfileModel.LocationPriorityDTO loc : model.getLocations()) {
+            // Update location priority
+            entityManager.createNativeQuery(updateLocationPrioritySql)
+                    .setParameter("locPriority", loc.getLocPriority())
+                    .setParameter("locationId", loc.getLocationId())
+                    .executeUpdate();
+
+            // Update SKU replenish param with same deployProfileId
+            entityManager.createNativeQuery(updateSkuParamSql)
+                    .setParameter("deployProfileId", newDeployProfileId)
+                    .setParameter("locationId", loc.getLocationId())
+                    .setParameter("productId", model.getProductId())
+                    .executeUpdate();
+
+            // Calculate priority duration dates per (locationId, productId)
+            try {
+                Date planDate = (Date) entityManager.createNativeQuery(planDateSql)
+                        .setParameter("locationId", loc.getLocationId())
+                        .setParameter("productId", model.getProductId())
+                        .getSingleResult();
+
+                if (planDate != null) {
+                    LocalDate startDate = planDate.toLocalDate();
+                    LocalDate endDate = startDate.plusDays(model.getPriorityDur());
+                    System.out.println("Location " + loc.getLocationId() + ": Priority duration starts " +
+                            startDate + " and ends " + endDate);
+                }
+            } catch (Exception e) {
+                System.out.println("No plan_date found for location " + loc.getLocationId());
+            }
+        }
+
+        System.out.println("Deploy profile and demand priorities inserted successfully.");
+
+    } catch (Exception e) {
+        System.out.println("Error inserting deploy rule: " + e);
+        throw new RuntimeException("Failed to insert deploy rule.", e);
+    }
 }
 
-.subhead {
-  font-size: 14px;
-  color: #a9a7a7;
-}
 
-.badge-square {
-  border-radius: 0px !important;
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-}
-
-.right-side {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 0.25rem;
-  padding: 8px;
-}
-
-.right_side_heading {
-  font-size: 14px;
-  padding: 2px;
-}
