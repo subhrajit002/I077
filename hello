@@ -462,3 +462,117 @@ public void insertDeployProfile(RPDeployProfileModel model) {
 }
 
 
+
+package com.JAVA_CURD.employee.model;
+
+import java.util.List;
+
+public class RPDeployProfileModel {
+
+    private List<Integer> selectedRuleIds;
+    private int priorityDur;
+    private String deployProfileId;
+    private String dmdPtyConfig;
+    private List<DemandPriority> demandPriorities;
+    private List<LocationPriorityDTO> locations;
+
+    public List<LocationPriorityDTO> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<LocationPriorityDTO> locations) {
+        this.locations = locations;
+    }
+
+    public List<Integer> getSelectedRuleIds() {
+        return selectedRuleIds;
+    }
+
+    public void setSelectedRuleIds(List<Integer> selectedRuleIds) {
+        this.selectedRuleIds = selectedRuleIds;
+    }
+
+    public int getPriorityDur() {
+        return priorityDur;
+    }
+
+    public void setPriorityDur(int priorityDur) {
+        this.priorityDur = priorityDur;
+    }
+
+    public String getDeployProfileId() {
+        return deployProfileId;
+    }
+
+    public void setDeployProfileId(String deployProfileId) {
+        this.deployProfileId = deployProfileId;
+    }
+
+    public String getDmdPtyConfig() {
+        return dmdPtyConfig;
+    }
+
+    public void setDmdPtyConfig(String dmdPtyConfig) {
+        this.dmdPtyConfig = dmdPtyConfig;
+    }
+
+    public List<DemandPriority> getDemandPriorities() {
+        return demandPriorities;
+    }
+
+    public void setDemandPriorities(List<DemandPriority> demandPriorities) {
+        this.demandPriorities = demandPriorities;
+    }
+
+    public static class DemandPriority {
+        private int dmdType;
+        private String channel;
+        private int pty;
+
+        public int getDmdType() {
+            return dmdType;
+        }
+
+        public void setDmdType(int dmdType) {
+            this.dmdType = dmdType;
+        }
+
+        public String getChannel() {
+            return channel;
+        }
+
+        public void setChannel(String channel) {
+            this.channel = channel;
+        }
+
+        public int getPty() {
+            return pty;
+        }
+
+        public void setPty(int pty) {
+            this.pty = pty;
+        }
+    }
+
+    public class LocationPriorityDTO {
+        private String locationId;
+        private Integer locPriority;
+
+        public String getLocationId() {
+            return locationId;
+        }
+
+        public void setLocationId(String locationId) {
+            this.locationId = locationId;
+        }
+
+        public Integer getLocPriority() {
+            return locPriority;
+        }
+
+        public void setLocPriority(Integer locPriority) {
+            this.locPriority = locPriority;
+        }
+    }
+}
+
