@@ -1,381 +1,340 @@
-* Locations */}
-      {selectedProduct && (
-        <>
-          <label>Locations:</label>
-          <select multiple value={selectedLocations} onChange={handleLocationChange}>
-            {locations.map(l => (
-              <option key={l.id} value={l.id}>{l.name}</option>
-            ))}
-          </select>
-        </>
-      )}
+@Transactional
+public Map<String, Integer> allocateSupply(String deployProfileId, int availableQuantity, LocalDate allocationDate) {
+    Map<String, Integer> allocationResult = new LinkedHashMap<>();
 
-      {/* Priority inputs */}
-      {priorityData.length > 0 && (
-        <div>
-          <h4>Set Location Priorities</h4>
-          {priorityData.map(item => (
-            <div key={item.locationId} style={{ marginBottom: 10 }}>
-              <strong>{item.locationId}</strong>
-              <input
-                type="number"
-                value={item.locPriority}
-                placeholder="Priority"
-                onChange={(e) => handlePriorityChange(item.locationId, e.target.value)}
-                style={{ marginLeft: 10, width: 60 }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+    try {
+        // Step 1: Fetch priority duration and plan date
+        String prioritySql = "SELECT priority_dur, plan_date FROM sclrp.rp_deploy_profile " +
+                           "WHERE deployprofileid = :deployProfileId";
+        Object[] priorityData = (Object[]) entityManager.createNativeQuery(prioritySql)
+            .setParameter("deployProfileId", deployProfileId)
+            .getSingleResult();
 
-      {/* Submit */}
-      {priorityData.length > 0 && (
-        <button onClick={handleSubmit} disabled={loading}>
-          {loading ? "Saving..." : "Save"}
-        </button>
-      )}
-    </div>
-  );
+        int priorityDur = ((Number) priorityData[0]).intValue();
+        LocalDate planDate = ((Date) priorityData[1]).toLocalDate();
+        LocalDate endDate = planDate.plusDays(priorityDur);
+
+        // Step 2: Validate allocation date against priority window
+        if (allocationDate.isBefore(planDate) || allocationDate.isAfter(endDate)) {
+            System.out.println("⚠️ Allocation date " + allocationDate + " is outside priority duration: " + 
+                             planDate + " to " + endDate);
+            return allocationResult; // Return empty result for invalid dates
+        }
+
+        // Step 3: Get dmd_pty_config for the profile
+        String configSql = "SELECT dmd_pty_config FROM sclrp.rp_deploy_profile WHERE deployprofileid = :deployProfileId";
+        String dmdPtyConfig = (String) entityManager.createNativeQuery(configSql)
+            .setParameter("deployProfileId", deployProfileId)
+            .getSingleResult();
+
+        // Step 4: Fetch demand types and priorities
+        String demandSql = "SELECT dmd_type, pty FROM sclrp.rp_dmd_pty_config WHERE dmd_pty_config = :dmdPtyConfig ORDER BY pty ASC";
+        List<Object[]> demandPriorities = entityManager.createNativeQuery(demandSql)
+            .setParameter("dmdPtyConfig", dmdPtyConfig)
+            .getResultList();
+
+        // Step 5: Fetch demand volumes WITHIN PRIORITY DURATION
+        String demandVolumeSql = "SELECT dmd_type, location_id, demand_qty " +
+                               "FROM sclrp.rp_demand " +
+                               "WHERE deployprofileid = :deployProfileId " +
+                               "AND demand_date BETWEEN :planDate AND :endDate";
+        List<Object[]> demandVolumes = entityManager.createNativeQuery(demandVolumeSql)
+            .setParameter("deployProfileId", deployProfileId)
+            .setParameter("planDate", planDate)
+            .setParameter("endDate", endDate)
+            .getResultList();
+
+
+        /*
+                    // Step 5: Fetch demand records
+            String demandSql = "SELECT dmd_type, location_id, demand_qty " +
+                    "FROM sclrp.rp_demand " +
+                    "WHERE deployprofileid = :deployProfileId " +
+                    "AND demand_date BETWEEN :planDate AND :endDate";
+
+            List<DemandEntry> demandEntries = jdbcTemplate.query(
+                    demandSql,
+                    params,
+                    (rs, rowNum) -> {
+                        DemandEntry entry = new DemandEntry();
+                        entry.dmdType = rs.getString("dmd_type");
+                        entry.locationId = rs.getString("location_id");
+                        entry.demandQty = rs.getInt("demand_qty");
+
+                        // 23.03: Explicit check & log for Base Forecast recognition
+                        if ("Base Forecast".equalsIgnoreCase(entry.dmdType)) {
+                            log.info("23.03 TRACE: Base Forecast demand recognized for location {} with qty {}",
+                                    entry.locationId, entry.demandQty);
+                        }
+
+                        return entry;
+                    }
+            );
+
+            // 23.03: At this point, Base Forecast demands are explicitly logged.
+            // This ensures test case 23.03 can be validated by auditors.
+        */
+
+        // Step 6: Organize demand volumes by type and location
+        Map<String, List<DemandEntry>> demandMap = new HashMap<>();
+        for (Object[] row : demandVolumes) {
+            String dmdType = (String) row[0];
+            String locationId = (String) row[1];
+            int qty = ((Number) row[2]).intValue();
+
+            demandMap.computeIfAbsent(dmdType, k -> new ArrayList<>())
+                    .add(new DemandEntry(locationId, qty));
+        }
+
+        // Step 7: Allocate supply based on priority (existing logic)
+        for (Object[] dp : demandPriorities) {
+            String dmdType = (String) dp[0];
+            List<DemandEntry> entries = demandMap.getOrDefault(dmdType, new ArrayList<>());
+
+            int totalDemand = entries.stream().mapToInt(e -> e.demandQty).sum();
+            if (totalDemand == 0) continue;
+
+            for (DemandEntry entry : entries) {
+                if (availableQuantity <= 0) break;
+
+                double ratio = (double) entry.demandQty / totalDemand;
+                int allocQty = (int) Math.floor(ratio * availableQuantity);
+                allocQty = Math.min(allocQty, entry.demandQty);
+
+                String key = entry.locationId + " (" + dmdType + ")";
+                allocationResult.put(key, allocQty);
+            }
+
+            availableQuantity -= allocationResult.values().stream()
+                .mapToInt(Integer::intValue).sum();
+        }
+
+        System.out.println("✅ Allocation completed for date " + allocationDate + 
+                         " (Priority window: " + planDate + " to " + endDate + ")");
+    } catch (Exception e) {
+        System.out.println("❌ Allocation failed: " + e.getMessage());
+        throw new RuntimeException("Allocation error", e);
+    }
+
+    return allocationResult;
+}
+
+// Helper class (unchanged)
+private static class DemandEntry {
+    String locationId;
+    int demandQty;
+    DemandEntry(String locationId, int demandQty) {
+        this.locationId = locationId;
+        this.demandQty = demandQty;
+    }
 }
 
 
 
 
-@Transactional
-public void insertDeployProfile(RPDeployProfileModel model) {
-    try {
-        // Convert rule IDs to string for storage
-        String deployRule = model.getSelectedRuleIds() != null
-                ? String.join(",", model.getSelectedRuleIds().stream()
-                .map(String::valueOf)
-                .toArray(String[]::new))
+
+package com.example.Hainproject.RP.service;
+
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import com.example.Mainproject.RP.model.RPDeployProfileModel;
+import com.example.Mainproject.RP.model.RPDeployProfileModel.DemandPriority;
+import com.example.Mainproject.util.TableNames;
+import com.example.Mainproject.RP.model.DeploySummaryDTO;
+
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.*;
+
+@Service
+public class RPDeployProfileService {
+
+    private final EntityManager entityManager;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    public RPDeployProfileService(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+
+    @Transactional
+    public void insertDeployProfile(RPDeployProfileModel model) {
+        try {
+            // Step 1: Prepare deploy rule string
+            String deployRule = model.getSelectedRuleIds() != null
+                ? String.join(",", model.getSelectedRuleIds().stream().map(String::valueOf).toArray(String[]::new))
                 : "";
 
-        // ---------------------------------------------------
-        // Generate new dmdPtyConfig
-        String latestCfgSql = "SELECT dmd_pty_config FROM sclrp.rp_dmd_pty_config " +
-                              "WHERE dmd_pty_config LIKE 'CFG%' ORDER BY dmd_pty_config DESC LIMIT 1";
-
-        String latestCfg;
-        try {
-            latestCfg = (String) entityManager.createNativeQuery(latestCfgSql).getSingleResult();
-        } catch (Exception e) {
-            latestCfg = null;
-        }
-
-        int nextCfgNum = 1;
-        if (latestCfg != null && latestCfg.startsWith("CFG")) {
+            // Step 2: Generate new dmd_pty_config
+            String latestCfgSql = "SELECT dmd_pty_config FROM sclrp.rp_dmd_pty_config " +
+                                  "WHERE dmd_pty_config LIKE 'DmdConfig%' ORDER BY dmd_pty_config DESC LIMIT 1";
+            String latestCfg;
             try {
-                nextCfgNum = Integer.parseInt(latestCfg.substring(3)) + 1;
-            } catch (NumberFormatException e) {
-                System.out.println("Failed to parse dmd_pty_config: " + latestCfg);
+                latestCfg = (String) entityManager.createNativeQuery(latestCfgSql).getSingleResult();
+            } catch (Exception e) {
+                latestCfg = null;
             }
-        }
-        String newDmdPtyConfig = "CFG" + String.format("%03d", nextCfgNum);
 
-        String dmdPtyConfig = newDmdPtyConfig;
-        // ---------------------------------------------------
-
-        // Generate new deployProfileId
-        String latestIdSql = "SELECT deployprofileid FROM sclrp.rp_deploy_profile " +
-                "WHERE deployprofileid LIKE 'DEPLOY%' ORDER BY deployprofileid DESC LIMIT 1";
-
-        String latestId;
-        try {
-            latestId = (String) entityManager.createNativeQuery(latestIdSql).getSingleResult();
-        } catch (Exception e) {
-            latestId = null;
-        }
-
-        int nextNumber = 1;
-        if (latestId != null && latestId.startsWith("DEPLOY")) {
-            try {
-                nextNumber = Integer.parseInt(latestId.substring(6)) + 1;
-            } catch (NumberFormatException e) {
-                System.out.println("Failed to parse deployprofileid: " + latestId);
+            int nextCfgNum = 1;
+            if (latestCfg != null && latestCfg.startsWith("DmdConfig")) {
+                try {
+                    String numericPart = latestCfg.substring(9);
+                    nextCfgNum = Integer.parseInt(numericPart) + 1;
+                } catch (NumberFormatException e) {
+                    System.out.println("Failed to parse dmd_pty_config: " + latestCfg);
+                }
             }
-        }
-        String newDeployProfileId = "DEPLOY" + nextNumber;
 
-        // Insert into rp_deploy_profile
-        String insertProfileSql = "INSERT INTO sclrp.rp_deploy_profile " +
-                "(deployrule, dmd_pty_config, priority_dur, deployprofileid) " +
-                "VALUES (:deployRule, :dmdPtyConfig, :priorityDur, :deployProfileId)";
-        entityManager.createNativeQuery(insertProfileSql)
+            String newDmdPtyConfig = "DmdConfig" + String.format("%03d", nextCfgNum);
+            String dmdPtyConfig = newDmdPtyConfig;
+            String newDeployProfileId = model.getDeployprofileid();
+
+            // Step 3: Validate deployProfileId existence
+            String validateSql = "SELECT COUNT(*) FROM sclrp.rp_sku_replen_param WHERE deployprofileid = :newDeployProfileId";
+            Number countResult = (Number) entityManager.createNativeQuery(validateSql)
+                .setParameter("newDeployProfileId", newDeployProfileId)
+                .getSingleResult();
+
+            int count = countResult.intValue();
+            if (count == 0) {
+                throw new RuntimeException("Provided deployProfileId does not exist in rp_sku_replen_param.");
+            }
+
+            // Step 4: Insert into rp_deploy_profile
+            String sql = "INSERT INTO sclrp.rp_deploy_profile " +
+                         "(deployrule, dmd_pty_config, priority_dur, deployprofileid) " +
+                         "VALUES (:deployRule, :dmdPtyConfig, :priorityDur, :deployprofileid)";
+            entityManager.createNativeQuery(sql)
                 .setParameter("deployRule", deployRule)
                 .setParameter("dmdPtyConfig", dmdPtyConfig)
                 .setParameter("priorityDur", model.getPriorityDur())
-                .setParameter("deployProfileId", newDeployProfileId)
+                .setParameter("deployprofileid", newDeployProfileId)
                 .executeUpdate();
 
-        // Insert demand priorities if provided
-        if (model.getDemandPriorities() != null && !model.getDemandPriorities().isEmpty()) {
-            String insertDemandSql = "INSERT INTO sclrp.rp_dmd_pty_config " +
-                    "(dmd_pty_config, dmd_type, channel, pty) " +
-                    "VALUES (:dmdPtyConfig, :dmdType, :channel, :pty)";
-            for (RPDeployProfileModel.DemandPriority dp : model.getDemandPriorities()) {
-                entityManager.createNativeQuery(insertDemandSql)
+            // Step 5: Insert demand priorities
+            if (model.getDemandPriorities() != null && !model.getDemandPriorities().isEmpty()) {
+                String configSql = "INSERT INTO sclrp.rp_dmd_pty_config " +
+                                   "(dmd_pty_config, dmd_type, channel, pty) " +
+                                   "VALUES (:dmdPtyConfig, :dmdType, :channel, :pty)";
+                for (DemandPriority dp : model.getDemandPriorities()) {
+                    entityManager.createNativeQuery(configSql)
                         .setParameter("dmdPtyConfig", dmdPtyConfig)
                         .setParameter("dmdType", dp.getDmdType())
                         .setParameter("channel", dp.getChannel())
                         .setParameter("pty", dp.getPty())
                         .executeUpdate();
+                }
             }
-        }
 
-        // Update multiple locations for single productId
-        String updateLocationPrioritySql = "UPDATE sclbl.bl_location " +
-                "SET loc_priority = :locPriority WHERE location_id = :locationId";
+            // Step 6: Update location priorities and calculate end dates
+            String updateLocationPrioritySql = "UPDATE sclbl.bl_location SET loc_priority = :locPriority WHERE location_id = :locationId";
+            String planDateSql = "SELECT plan_date FROM sclrp.rp_sku_replen_param " +
+                                 "WHERE location_id = :locationId AND deployprofileid = :deployProfileid " +
+                                 "ORDER BY plan_date DESC LIMIT 1";
 
-        String updateSkuParamSql = "UPDATE sclrp.rp_sku_replen_param " +
-                "SET deployprofileid = :deployProfileId " +
-                "WHERE location_id = :locationId AND product_id = :productId";
+            Map<String, LocalDate> locationEndDates = new HashMap<>();
 
-        String planDateSql = "SELECT plan_date FROM sclrp.rp_sku_replen_param " +
-                "WHERE location_id = :locationId AND product_id = :productId LIMIT 1";
-
-        for (RPDeployProfileModel.LocationPriorityDTO loc : model.getLocations()) {
-            // Update location priority
-            entityManager.createNativeQuery(updateLocationPrioritySql)
+            for (RPDeployProfileModel.LocationPriorityDTO loc : model.getLocations()) {
+                entityManager.createNativeQuery(updateLocationPrioritySql)
                     .setParameter("locPriority", loc.getLocPriority())
                     .setParameter("locationId", loc.getLocationId())
                     .executeUpdate();
 
-            // Update SKU replenish param with same deployProfileId
-            entityManager.createNativeQuery(updateSkuParamSql)
-                    .setParameter("deployProfileId", newDeployProfileId)
-                    .setParameter("locationId", loc.getLocationId())
-                    .setParameter("productId", model.getProductId())
-                    .executeUpdate();
-
-            // Calculate priority duration dates per (locationId, productId)
-            try {
-                Date planDate = (Date) entityManager.createNativeQuery(planDateSql)
+                try {
+                    Date planDate = (Date) entityManager.createNativeQuery(planDateSql)
                         .setParameter("locationId", loc.getLocationId())
-                        .setParameter("productId", model.getProductId())
+                        .setParameter("deployProfileid", newDeployProfileId)
                         .getSingleResult();
 
-                if (planDate != null) {
-                    LocalDate startDate = planDate.toLocalDate();
-                    LocalDate endDate = startDate.plusDays(model.getPriorityDur());
-                    System.out.println("Location " + loc.getLocationId() + ": Priority duration starts " +
-                            startDate + " and ends " + endDate);
+                    if (planDate != null) {
+                        LocalDate startDate = planDate.toLocalDate();
+                        LocalDate endDate = startDate.plusDays(model.getPriorityDur());
+                        locationEndDates.put(loc.getLocationId(), endDate);
+
+                        System.out.println("Location " + loc.getLocationId() +
+                            ": Priority duration starts " + startDate + " and ends " + endDate);
+                    }
+                } catch (Exception e) {
+                    System.out.println("No plan_date found for location " + loc.getLocationId());
                 }
-            } catch (Exception e) {
-                System.out.println("No plan_date found for location " + loc.getLocationId());
             }
+
+            System.out.println("Deploy profile and demand priorities inserted successfully.");
+        } catch (Exception e) {
+            System.out.println("Error inserting deploy rule: " + e);
+            throw new RuntimeException("Failed to insert deploy rule.");
+        }
+    }
+
+    @Transactional
+    public List<DeploySummaryDTO> getMergedSummary() {
+        String sql = """
+            SELECT
+                rpdp.deployprofileid,
+                (
+                    SELECT STRING_AGG(DISTINCT rpdp_inner.priority_dur::TEXT, ',')
+                    FROM sclrp.rp_deploy_profile rpdp_inner
+                    WHERE rpdp_inner.deployprofileid = rpdp.deployprofileid
+                ) AS priority,
+                (
+                    SELECT STRING_AGG(DISTINCT dpc.dmd_type::TEXT, ', ')
+                    FROM sclrp.rp_dmd_pty_config dpc
+                    JOIN sclrp.rp_deploy_profile rpdp_inner ON rpdp_inner.dmd_pty_config = dpc.dmd_pty_config
+                    WHERE rpdp_inner.deployprofileid = rpdp.deployprofileid
+                ) AS dmdtype,
+                (
+                    SELECT STRING_AGG(DISTINCT rps.location_id, ',')
+                    FROM sclrp.rp_sku_replen_param rps
+                    WHERE rps.deployprofileid = rpdp.deployprofileid
+                ) AS location_id,
+                (
+                    SELECT STRING_AGG(DISTINCT bl.loc_priority::TEXT, ',')
+                    FROM sclrp.rp_sku_replen_param rps
+                    JOIN sclbl.bl_location bl ON rps.location_id = bl.location_id
+                    WHERE rps.deployprofileid = rpdp.deployprofileid
+                ) AS locationpriority,
+                (
+                    SELECT STRING_AGG(DISTINCT rpdp_inner.deployrule, ', ')
+                    FROM sclrp.rp_deploy_profile rpdp_inner
+                    WHERE rpdp_inner.deployprofileid = rpdp.deployprofileid
+                ) AS selected_rule,
+                (
+                    SELECT STRING_AGG(
+                        DISTINCT TO_CHAR(rps.plan_date + CAST(rpdp_inner.priority_dur AS INTEGER), 'YYYYMMDD'),
+                        ','
+                    )
+                    FROM sclrp.rp_sku_replen_param rps
+                    JOIN sclrp.rp_deploy_profile rpdp_inner ON rps.deployprofileid = rpdp_inner.deployprofileid
+                    WHERE rps.deployprofileid = rpdp.deployprofileid
+                ) AS end_date
+            FROM sclrp.rp_deploy_profile rpdp
+            GROUP BY rpdp.deployprofileid
+            ORDER BY CAST(REGEXP_REPLACE(rpdp.deployprofileid, '[^0-9]', '', 'g') AS INTEGER) DESC
+        """;
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+        List<DeploySummaryDTO> results = new ArrayList<>();
+
+        for (Map<String, Object> row : rows) {
+            DeploySummaryDTO dto = new DeploySummaryDTO();
+            dto.setPriority_dur(getString(row.get("priority")));
+            dto.setDmdtype(getString(row.get("dmdtype")));
+            dto.setLocationId(getString(row.get("location_id")));
+            dto.setLocationPriority(getString(row.get("locationpriority")));
+            dto.setSelectedRule(getString(row.get("selected_rule")));
+            dto.setEndDate(getString(row.get("end_date")));
+            results.add(dto);
         }
 
-        System.out.println("Deploy profile and demand priorities inserted successfully.");
+        return results;
+    }
 
-    } catch (Exception e) {
-        System.out.println("Error inserting deploy rule: " + e);
-        throw new RuntimeException("Failed to insert deploy rule.", e);
+    private String getString(Object value) {
+        return value != null ? value.toString() : "";
     }
 }
-
-
-
-package com.JAVA_CURD.employee.model;
-
-import java.util.List;
-
-public class RPDeployProfileModel {
-
-    private List<Integer> selectedRuleIds;
-    private int priorityDur;
-    private String deployProfileId;
-    private String dmdPtyConfig;
-    private List<DemandPriority> demandPriorities;
-    private List<LocationPriorityDTO> locations;
-
-    public List<LocationPriorityDTO> getLocations() {
-        return locations;
-    }
-
-    public void setLocations(List<LocationPriorityDTO> locations) {
-        this.locations = locations;
-    }
-
-    public List<Integer> getSelectedRuleIds() {
-        return selectedRuleIds;
-    }
-
-    public void setSelectedRuleIds(List<Integer> selectedRuleIds) {
-        this.selectedRuleIds = selectedRuleIds;
-    }
-
-    public int getPriorityDur() {
-        return priorityDur;
-    }
-
-    public void setPriorityDur(int priorityDur) {
-        this.priorityDur = priorityDur;
-    }
-
-    public String getDeployProfileId() {
-        return deployProfileId;
-    }
-
-    public void setDeployProfileId(String deployProfileId) {
-        this.deployProfileId = deployProfileId;
-    }
-
-    public String getDmdPtyConfig() {
-        return dmdPtyConfig;
-    }
-
-    public void setDmdPtyConfig(String dmdPtyConfig) {
-        this.dmdPtyConfig = dmdPtyConfig;
-    }
-
-    public List<DemandPriority> getDemandPriorities() {
-        return demandPriorities;
-    }
-
-    public void setDemandPriorities(List<DemandPriority> demandPriorities) {
-        this.demandPriorities = demandPriorities;
-    }
-
-    public static class DemandPriority {
-        private int dmdType;
-        private String channel;
-        private int pty;
-
-        public int getDmdType() {
-            return dmdType;
-        }
-
-        public void setDmdType(int dmdType) {
-            this.dmdType = dmdType;
-        }
-
-        public String getChannel() {
-            return channel;
-        }
-
-        public void setChannel(String channel) {
-            this.channel = channel;
-        }
-
-        public int getPty() {
-            return pty;
-        }
-
-        public void setPty(int pty) {
-            this.pty = pty;
-        }
-    }
-
-    public class LocationPriorityDTO {
-        private String locationId;
-        private Integer locPriority;
-
-        public String getLocationId() {
-            return locationId;
-        }
-
-        public void setLocationId(String locationId) {
-            this.locationId = locationId;
-        }
-
-        public Integer getLocPriority() {
-            return locPriority;
-        }
-
-        public void setLocPriority(Integer locPriority) {
-            this.locPriority = locPriority;
-        }
-    }
-}
-
-
-
-1.0. Overview
-
-As a supply planner, I would want the ability to prioritize my orders in the situations like huge dermand volume or constrained supply. The system should allow me to define and apply prioritization rules that support timely and strategic decision-making
-
-2.0. Functional Requirements
-
-We must build a logic that enables users to choose their requared prionty factors in prionlizing the demands.
-
-21.Factors
-
-The following are the factors that users can avail in prioritizing their demands
-
-1. Demand Priority
-
-
-2. Location Priority
-
-
-3. Need Delivery Date
-
-
-
-4 Need Order Date
-
-5. Scheduled Delivery Date
-
-
-
-6 Scheduled Order Date
-
-The users must be able to choose their required factors and arrange the pronty sequence of these factors according to their requirement
-
-The pronty sequence meritioned by the users must be stored in RP_DEPLOY PROFILE DeployRule as comma separated values
-
-The logic must be able to display the orders according to the priorities given by the users
-
-2.2 Demand Prionty
-
-The following are the different demand elements that can be chosen by the user in the Demand Priority:
-
-1. Base Forecast
-
-
-
-2 Promo Forecast
-
-3. Demand Orders
-
-
-
-4 Planned Shipments
-
-5 Out of Stock Location
-
-6. Safety Stock
-
-
-
-The demand pnorites mentioned by the users must be stored in
-
-RP DMD PTY CONFIG table
-
-The demand type thosen by the user tmust be stored in
-
-RP DMD PTY_CONFIG DmdType, and the pnority assigned for the demand type must
-
-be stored in RP DMD PTY_CONFIG Pty
-
-2.3. Location Priority
-
-The users must be atile to mention their required location priorities
-
-The user's mentioned location priorities must be stored in BL LOCATION Loc Priority
-
-24. Duplov Hules
-
-
-
-The users must also be able to give the RP DEPLOY PROFILE Phonty Dur which would start from the corresponding RP SKU REPLEN PARAM Plan Date and extend till the number of days mentioned in the RP DEPLOY PROFILE Priority Dur
-
-Scenario: 1. The Deploy Rule is given as Demand Pronty. Location Priority
-
-For example, if Bar has a demand of 100 unes and Str2 has the demand of 50 units, and the supplier has 150 units to supply and the demand priorities are given as below
-
-Both Str1 and Str2 come under DmdConfig1, and the demand type's Base Forecast has priority as 1 and Promo Forecast has priority as 2 respectively
-
-If Str1 is going through promotion and has a demand of 100 units, and Str 2 has a regular demand of 50 units, then the supplier would fulfill the Str1 demand of 100 units (as it has a Promo Fosti and next the demand of Str2 which would be 50 units.
