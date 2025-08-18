@@ -1,290 +1,4 @@
-@Transactional
-public void insertDeployProfile(RPDeployProfileModel model) {
-    try {
-        // Convert rule IDs to string for storage
-        String deployRule = model.getSelectedRuleIds() != null
-                ? String.join(",", model.getSelectedRuleIds().stream()
-                    .map(String::valueOf)
-                    .toArray(String[]::new))
-                : "";
-
-        String dmdPtyConfig = model.getDmdPtyConfig() != null ? model.getDmdPtyConfig() : "";
-
-        // Generate new deployProfileId
-        String latestIdSql = "SELECT deployprofileid FROM sclrp.rp_deploy_profile " +
-                "WHERE deployprofileid LIKE 'DEPLOY%' ORDER BY deployprofileid DESC LIMIT 1";
-
-        String latestId;
-        try {
-            latestId = (String) entityManager.createNativeQuery(latestIdSql).getSingleResult();
-        } catch (Exception e) {
-            latestId = null;
-        }
-
-        int nextNumber = 1;
-        if (latestId != null && latestId.startsWith("DEPLOY")) {
-            try {
-                nextNumber = Integer.parseInt(latestId.substring(6)) + 1;
-            } catch (NumberFormatException e) {
-                System.out.println("Failed to parse deployprofileid: " + latestId);
-            }
-        }
-        String newDeployProfileId = "DEPLOY" + nextNumber;
-
-        // Insert into rp_deploy_profile
-        String insertProfileSql = "INSERT INTO sclrp.rp_deploy_profile " +
-                "(deployrule, dmd_pty_config, priority_dur, deployprofileid) " +
-                "VALUES (:deployRule, :dmdPtyConfig, :priorityDur, :deployProfileId)";
-        entityManager.createNativeQuery(insertProfileSql)
-                .setParameter("deployRule", deployRule)
-                .setParameter("dmdPtyConfig", dmdPtyConfig)
-                .setParameter("priorityDur", model.getPriorityDur())
-                .setParameter("deployProfileId", newDeployProfileId)
-                .executeUpdate();
-
-        // Insert demand priorities if provided
-        if (model.getDemandPriorities() != null && !model.getDemandPriorities().isEmpty()) {
-            String insertDemandSql = "INSERT INTO sclrp.rp_dmd_pty_config " +
-                    "(dmd_pty_config, dmd_type, channel, pty) " +
-                    "VALUES (:dmdPtyConfig, :dmdType, :channel, :pty)";
-            for (RPDeployProfileModel.DemandPriority dp : model.getDemandPriorities()) {
-                entityManager.createNativeQuery(insertDemandSql)
-                        .setParameter("dmdPtyConfig", dmdPtyConfig)
-                        .setParameter("dmdType", dp.getDmdType())
-                        .setParameter("channel", dp.getChannel())
-                        .setParameter("pty", dp.getPty())
-                        .executeUpdate();
-            }
-        }
-
-        // Update multiple locations for single productId
-        String updateLocationPrioritySql = "UPDATE sclbl.bl_location " +
-                "SET loc_priority = :locPriority WHERE location_id = :locationId";
-
-        String updateSkuParamSql = "UPDATE sclrp.rp_sku_replen_param " +
-                "SET deployprofileid = :deployProfileId " +
-                "WHERE location_id = :locationId AND product_id = :productId";
-
-        String planDateSql = "SELECT plan_date FROM sclrp.rp_sku_replen_param " +
-                "WHERE location_id = :locationId AND product_id = :productId LIMIT 1";
-
-        for (RPDeployProfileModel.LocationPriorityDTO loc : model.getLocations()) {
-            // Update location priority
-            entityManager.createNativeQuery(updateLocationPrioritySql)
-                    .setParameter("locPriority", loc.getLocPriority())
-                    .setParameter("locationId", loc.getLocationId())
-                    .executeUpdate();
-
-            // Update SKU replenish param with same deployProfileId
-            entityManager.createNativeQuery(updateSkuParamSql)
-                    .setParameter("deployProfileId", newDeployProfileId)
-                    .setParameter("locationId", loc.getLocationId())
-                    .setParameter("productId", model.getProductId())
-                    .executeUpdate();
-
-            // Calculate priority duration dates per (locationId, productId)
-            try {
-                Date planDate = (Date) entityManager.createNativeQuery(planDateSql)
-                        .setParameter("locationId", loc.getLocationId())
-                        .setParameter("productId", model.getProductId())
-                        .getSingleResult();
-
-                if (planDate != null) {
-                    LocalDate startDate = planDate.toLocalDate();
-                    LocalDate endDate = startDate.plusDays(model.getPriorityDur());
-                    System.out.println("Location " + loc.getLocationId() + ": Priority duration starts " +
-                            startDate + " and ends " + endDate);
-                }
-            } catch (Exception e) {
-                System.out.println("No plan_date found for location " + loc.getLocationId());
-            }
-        }
-
-        System.out.println("Deploy profile and demand priorities inserted successfully.");
-
-    } catch (Exception e) {
-        System.out.println("Error inserting deploy rule: " + e);
-        throw new RuntimeException("Failed to insert deploy rule.", e);
-    }
-}
-
-
-
-{
-  "productId": "P001",
-  "priorityDur": 10,
-  "selectedRuleIds": [1, 2],
-  "dmdPtyConfig": "CFG01",
-  "demandPriorities": [
-    { "dmdType": 1, "channel": "Online", "pty": 1 }
-  ],
-  "locations": [
-    { "locationId": "LOC001", "locPriority": 1 },
-    { "locationId": "LOC002", "locPriority": 2 }
-  ]
-}
-
-
-
-
-
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-
-export default function DeployConfigForm() {
-  const [products, setProducts] = useState([]);
-  const [locations, setLocations] = useState([]);
-  const [priorityConfigs, setPriorityConfigs] = useState([]); // [{id, name}]
-  const [demandTypes, setDemandTypes] = useState([]); // [{id, channel}]
-
-  const [selectedProduct, setSelectedProduct] = useState("");
-  const [selectedLocations, setSelectedLocations] = useState([]);
-  const [priorityData, setPriorityData] = useState([]);
-  const [selectedRuleIds, setSelectedRuleIds] = useState([]);
-  const [selectedDemandTypes, setSelectedDemandTypes] = useState([]);
-
-  const [loading, setLoading] = useState(false);
-
-  // Fetch dropdown data
-  useEffect(() => {
-    axios.get("/api/products").then(res => setProducts(res.data));
-    axios.get("/api/locations").then(res => setLocations(res.data));
-    axios.get("/api/priority-configs").then(res => setPriorityConfigs(res.data)); 
-    axios.get("/api/demand-types").then(res => setDemandTypes(res.data)); 
-  }, []);
-
-  // Product select
-  const handleProductChange = (e) => {
-    setSelectedProduct(e.target.value);
-    setSelectedLocations([]);
-    setPriorityData([]);
-  };
-
-  // Location multi-select
-  const handleLocationChange = (e) => {
-    const selected = Array.from(e.target.selectedOptions, opt => opt.value);
-    setSelectedLocations(selected);
-
-    // Add new priorities for newly selected
-    const updated = [...priorityData];
-    selected.forEach(loc => {
-      if (!updated.find(item => item.locationId === loc)) {
-        updated.push({ locationId: loc, locPriority: "" });
-      }
-    });
-
-    // Remove unselected
-    setPriorityData(updated.filter(item => selected.includes(item.locationId)));
-  };
-
-  // Priority for location
-  const handlePriorityChange = (locId, value) => {
-    setPriorityData(prev =>
-      prev.map(item =>
-        item.locationId === locId ? { ...item, locPriority: Number(value) } : item
-      )
-    );
-  };
-
-  // Priority config checkboxes
-  const handlePriorityConfigChange = (id) => {
-    setSelectedRuleIds(prev =>
-      prev.includes(id) ? prev.filter(rid => rid !== id) : [...prev, id]
-    );
-  };
-
-  // Demand priorities selection
-  const handleDemandTypeChange = (id) => {
-    setSelectedDemandTypes(prev => {
-      if (prev.find(d => d.dmdType === id)) {
-        return prev.filter(d => d.dmdType !== id);
-      } else {
-        return [...prev, { dmdType: id, channel: demandTypes.find(dt => dt.id === id).channel }];
-      }
-    });
-  };
-
-  // Prepare payload & submit
-  const handleSubmit = () => {
-    if (!selectedProduct) {
-      alert("Select a product.");
-      return;
-    }
-    if (priorityData.some(item => item.locPriority === "")) {
-      alert("Set priorities for all selected locations.");
-      return;
-    }
-
-    // Assign pty in order selected
-    const demandPriorities = selectedDemandTypes.map((item, index) => ({
-      dmdType: item.dmdType,
-      channel: item.channel,
-      pty: index + 1
-    }));
-
-    const payload = {
-      productId: selectedProduct,
-      priorityDur: 10, // example static
-      selectedRuleIds: selectedRuleIds,
-      dmdPtyConfig: "CFG01", // example static
-      demandPriorities: demandPriorities,
-      locations: priorityData
-    };
-
-    setLoading(true);
-    axios.post("http://localhost:8080/api/deploy/add", payload)
-      .then(() => {
-        alert("Saved successfully!");
-        setSelectedProduct("");
-        setSelectedLocations([]);
-        setPriorityData([]);
-        setSelectedRuleIds([]);
-        setSelectedDemandTypes([]);
-      })
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
-  };
-
-  return (
-    <div style={{ padding: 20, maxWidth: 600 }}>
-      <h2>Deploy Configuration</h2>
-
-      {/* Product */}
-      <label>Product:</label>
-      <select value={selectedProduct} onChange={handleProductChange}>
-        <option value="">-- Select Product --</option>
-        {products.map(p => (
-          <option key={p.id} value={p.id}>{p.name}</option>
-        ))}
-      </select>
-
-      {/* Priority Config checkboxes */}
-      <h4>Priority Configuration</h4>
-      {priorityConfigs.map(pc => (
-        <label key={pc.id} style={{ display: "block" }}>
-          <input
-            type="checkbox"
-            checked={selectedRuleIds.includes(pc.id)}
-            onChange={() => handlePriorityConfigChange(pc.id)}
-          />
-          {pc.name}
-        </label>
-      ))}
-
-      {/* Demand priorities checkboxes */}
-      <h4>Demand Priorities</h4>
-      {demandTypes.map(dt => (
-        <label key={dt.id} style={{ display: "block" }}>
-          <input
-            type="checkbox"
-            checked={selectedDemandTypes.some(d => d.dmdType === dt.id)}
-            onChange={() => handleDemandTypeChange(dt.id)}
-          />
-          {dt.name} ({dt.channel})
-        </label>
-      ))}
-
-      {/* Locations */}
+* Locations */}
       {selectedProduct && (
         <>
           <label>Locations:</label>
@@ -576,3 +290,92 @@ public class RPDeployProfileModel {
     }
 }
 
+
+
+1.0. Overview
+
+As a supply planner, I would want the ability to prioritize my orders in the situations like huge dermand volume or constrained supply. The system should allow me to define and apply prioritization rules that support timely and strategic decision-making
+
+2.0. Functional Requirements
+
+We must build a logic that enables users to choose their requared prionty factors in prionlizing the demands.
+
+21.Factors
+
+The following are the factors that users can avail in prioritizing their demands
+
+1. Demand Priority
+
+
+2. Location Priority
+
+
+3. Need Delivery Date
+
+
+
+4 Need Order Date
+
+5. Scheduled Delivery Date
+
+
+
+6 Scheduled Order Date
+
+The users must be able to choose their required factors and arrange the pronty sequence of these factors according to their requirement
+
+The pronty sequence meritioned by the users must be stored in RP_DEPLOY PROFILE DeployRule as comma separated values
+
+The logic must be able to display the orders according to the priorities given by the users
+
+2.2 Demand Prionty
+
+The following are the different demand elements that can be chosen by the user in the Demand Priority:
+
+1. Base Forecast
+
+
+
+2 Promo Forecast
+
+3. Demand Orders
+
+
+
+4 Planned Shipments
+
+5 Out of Stock Location
+
+6. Safety Stock
+
+
+
+The demand pnorites mentioned by the users must be stored in
+
+RP DMD PTY CONFIG table
+
+The demand type thosen by the user tmust be stored in
+
+RP DMD PTY_CONFIG DmdType, and the pnority assigned for the demand type must
+
+be stored in RP DMD PTY_CONFIG Pty
+
+2.3. Location Priority
+
+The users must be atile to mention their required location priorities
+
+The user's mentioned location priorities must be stored in BL LOCATION Loc Priority
+
+24. Duplov Hules
+
+
+
+The users must also be able to give the RP DEPLOY PROFILE Phonty Dur which would start from the corresponding RP SKU REPLEN PARAM Plan Date and extend till the number of days mentioned in the RP DEPLOY PROFILE Priority Dur
+
+Scenario: 1. The Deploy Rule is given as Demand Pronty. Location Priority
+
+For example, if Bar has a demand of 100 unes and Str2 has the demand of 50 units, and the supplier has 150 units to supply and the demand priorities are given as below
+
+Both Str1 and Str2 come under DmdConfig1, and the demand type's Base Forecast has priority as 1 and Promo Forecast has priority as 2 respectively
+
+If Str1 is going through promotion and has a demand of 100 units, and Str 2 has a regular demand of 50 units, then the supplier would fulfill the Str1 demand of 100 units (as it has a Promo Fosti and next the demand of Str2 which would be 50 units.
