@@ -1,88 +1,48 @@
 import React from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
 
-const Dashboard = () => {
+const DashboardTopStats = () => {
   return (
-    <Container fluid className="p-4 bg-light" style={{ minHeight: "100vh" }}>
-      {/* Row 1: Stats */}
-      <Row className="mb-4">
+    <Container fluid className="p-3" style={{ backgroundColor: "#f8f9fa" }}>
+      <Row className="g-3">
+        {/* Total Agent */}
         <Col md={4}>
-          <Card className="shadow-sm text-center">
-            <Card.Body>
-              <Card.Title>Total Agent</Card.Title>
-              <h2 className="text-primary">55</h2>
+          <Card className="shadow-sm border-0" style={{ height: "100px" }}>
+            <Card.Body className="d-flex flex-column justify-content-center">
+              <div style={{ fontSize: "14px", fontWeight: "500", color: "#555" }}>
+                TOTAL AGENT
+              </div>
+              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#000" }}>
+                56
+              </div>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
-          <Card className="shadow-sm text-center">
-            <Card.Body>
-              <Card.Title>Response Rate</Card.Title>
-              <h2 className="text-primary">16.67%</h2>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="shadow-sm text-center">
-            <Card.Body>
-              <Card.Title>Avg. Response Time</Card.Title>
-              <h2 className="text-primary">10 Min</h2>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
 
-      {/* Row 2: Gauges */}
-      <Row className="mb-4">
+        {/* Response Rate */}
         <Col md={4}>
-          <Card className="shadow-sm text-center">
-            <Card.Body>
-              <Card.Title>Customer Satisfaction</Card.Title>
-              <div style={{ height: "150px" }}>[Gauge Chart]</div>
+          <Card className="shadow-sm border-0" style={{ height: "100px" }}>
+            <Card.Body className="d-flex flex-column justify-content-center">
+              <div style={{ fontSize: "14px", fontWeight: "500", color: "#555" }}>
+                Response Rate
+              </div>
+              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#000" }}>
+                16.67%
+              </div>
             </Card.Body>
           </Card>
         </Col>
-        <Col md={4}>
-          <Card className="shadow-sm text-center">
-            <Card.Body>
-              <Card.Title>Net Promotion Score</Card.Title>
-              <div style={{ height: "150px" }}>[Gauge Chart]</div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="shadow-sm text-center">
-            <Card.Body>
-              <Card.Title>Customer Effort Score</Card.Title>
-              <div style={{ height: "150px" }}>[Gauge Chart]</div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
 
-      {/* Row 3: Charts */}
-      <Row>
+        {/* Avg Response Time */}
         <Col md={4}>
-          <Card className="shadow-sm text-center">
-            <Card.Body>
-              <Card.Title>Customer Satisfaction Scores</Card.Title>
-              <div style={{ height: "150px" }}>[Pie Chart]</div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="shadow-sm text-center">
-            <Card.Body>
-              <Card.Title>Customer Satisfaction Score Trend</Card.Title>
-              <div style={{ height: "150px" }}>[Line Chart]</div>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="shadow-sm text-center">
-            <Card.Body>
-              <Card.Title>Customer Effort Score Trend</Card.Title>
-              <div style={{ height: "150px" }}>[Donut Chart]</div>
+          <Card className="shadow-sm border-0" style={{ height: "100px" }}>
+            <Card.Body className="d-flex flex-column justify-content-center">
+              <div style={{ fontSize: "14px", fontWeight: "500", color: "#555" }}>
+                Average Response Time
+              </div>
+              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#000" }}>
+                10
+              </div>
             </Card.Body>
           </Card>
         </Col>
@@ -91,4 +51,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardTopStats;
