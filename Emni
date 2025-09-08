@@ -1,54 +1,47 @@
 import React from "react";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-const DashboardTopStats = () => {
+const Teamwork = () => {
   return (
-    <Container fluid className="p-3" style={{ backgroundColor: "#f8f9fa" }}>
-      <Row className="g-3">
-        {/* Total Agent */}
-        <Col md={4}>
-          <Card className="shadow-sm border-0" style={{ height: "100px" }}>
-            <Card.Body className="d-flex flex-column justify-content-center">
-              <div style={{ fontSize: "14px", fontWeight: "500", color: "#555" }}>
-                TOTAL AGENT
-              </div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#000" }}>
-                56
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
+    <div className="container-fluid d-flex flex-column justify-content-center align-items-center text-center py-5" style={{ minHeight: "100vh" }}>
+      {/* Title Section */}
+      <div className="mb-4">
+        <h5 className="text-muted">Teamwork.</h5>
+        <h1 className="display-4 fw-bold">
+          <span style={{ color: "#e63946" }}>We</span> scratch, build and <br /> play together.
+        </h1>
+        <p className="text-secondary mt-3">
+          We are 100% fully transparent & creative together with our amazing team on the ground.
+        </p>
+      </div>
 
-        {/* Response Rate */}
-        <Col md={4}>
-          <Card className="shadow-sm border-0" style={{ height: "100px" }}>
-            <Card.Body className="d-flex flex-column justify-content-center">
-              <div style={{ fontSize: "14px", fontWeight: "500", color: "#555" }}>
-                Response Rate
-              </div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#000" }}>
-                16.67%
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
+      {/* Image Section */}
+      <div className="d-flex justify-content-center align-items-center">
+        <div className="position-relative">
+          {/* Heart Icon */}
+          <span
+            className="position-absolute top-0 start-0 translate-middle p-2 bg-white rounded-circle shadow"
+            style={{ zIndex: 2 }}
+          >
+            <i className="bi bi-heart" style={{ color: "#e63946" }}></i>
+          </span>
 
-        {/* Avg Response Time */}
-        <Col md={4}>
-          <Card className="shadow-sm border-0" style={{ height: "100px" }}>
-            <Card.Body className="d-flex flex-column justify-content-center">
-              <div style={{ fontSize: "14px", fontWeight: "500", color: "#555" }}>
-                Average Response Time
-              </div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#000" }}>
-                10
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+          {/* Image */}
+          <img
+            src="https://via.placeholder.com/400x250"
+            alt="Teamwork"
+            className="img-fluid rounded shadow"
+            style={{ maxWidth: "450px" }}
+          />
+        </div>
+      </div>
+
+      {/* Button */}
+      <div className="mt-4">
+        <button className="btn btn-danger px-4 py-2">Get Offer</button>
+      </div>
+    </div>
   );
 };
 
-export default DashboardTopStats;
+export default Teamwork;
