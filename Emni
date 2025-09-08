@@ -1,47 +1,57 @@
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const Teamwork = () => {
+const CultureSection = () => {
   return (
-    <div className="container-fluid d-flex flex-column justify-content-center align-items-center text-center py-5" style={{ minHeight: "100vh" }}>
-      {/* Title Section */}
-      <div className="mb-4">
-        <h5 className="text-muted">Teamwork.</h5>
-        <h1 className="display-4 fw-bold">
-          <span style={{ color: "#e63946" }}>We</span> scratch, build and <br /> play together.
-        </h1>
-        <p className="text-secondary mt-3">
-          We are 100% fully transparent & creative together with our amazing team on the ground.
-        </p>
-      </div>
+    <div className="container my-5">
+      <div className="row d-flex align-items-center">
+        {/* Left Images Section */}
+        <div className="col-md-6 d-flex flex-column gap-4">
+          {/* First Image */}
+          <div className="position-relative">
+            <img
+              src="https://via.placeholder.com/400x250"
+              alt="Team Discussion"
+              className="img-fluid rounded shadow"
+            />
+          </div>
 
-      {/* Image Section */}
-      <div className="d-flex justify-content-center align-items-center">
-        <div className="position-relative">
-          {/* Heart Icon */}
-          <span
-            className="position-absolute top-0 start-0 translate-middle p-2 bg-white rounded-circle shadow"
-            style={{ zIndex: 2 }}
-          >
-            <i className="bi bi-heart" style={{ color: "#e63946" }}></i>
-          </span>
-
-          {/* Image */}
-          <img
-            src="https://via.placeholder.com/400x250"
-            alt="Teamwork"
-            className="img-fluid rounded shadow"
-            style={{ maxWidth: "450px" }}
-          />
+          {/* Second Image */}
+          <div className="position-relative">
+            <span
+              className="position-absolute top-0 start-0 translate-middle p-2 bg-white rounded-circle shadow"
+              style={{ zIndex: 2 }}
+            >
+              <i className="bi bi-heart" style={{ color: "#e63946" }}></i>
+            </span>
+            <img
+              src="https://via.placeholder.com/400x250"
+              alt="Work Culture"
+              className="img-fluid rounded shadow"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Button */}
-      <div className="mt-4">
-        <button className="btn btn-danger px-4 py-2">Get Offer</button>
+        {/* Right Text Section */}
+        <div className="col-md-6 text-start mt-4 mt-md-0">
+          <p className="text-uppercase text-muted small">Inside Successive</p>
+          <h2 className="fw-bold mb-3">
+            Open Communication & Free Culture <br />
+            <span className="fw-bold">We Cherish Both.</span>
+          </h2>
+          <h5 className="fw-bold mb-3">Fostering creativity and innovation.</h5>
+          <p className="text-secondary mb-4">
+            We nurture a collaborative environment that empowers our team to share ideas and create
+            impactful solutions. Our culture fosters creativity, encourages innovation, and supports
+            professional growth.
+          </p>
+          <a href="#" className="text-danger fw-bold text-decoration-none">
+            Explore →
+          </a>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Teamwork;
+export default CultureSection;
