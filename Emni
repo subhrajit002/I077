@@ -1,57 +1,999 @@
-import React from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-
-const CultureSection = () => {
+export default function HomePage() {
   return (
-    <div className="container my-5">
-      <div className="row d-flex align-items-center">
-        {/* Left Images Section */}
-        <div className="col-md-6 d-flex flex-column gap-4">
-          {/* First Image */}
-          <div className="position-relative">
-            <img
-              src="https://via.placeholder.com/400x250"
-              alt="Team Discussion"
-              className="img-fluid rounded shadow"
-            />
-          </div>
-
-          {/* Second Image */}
-          <div className="position-relative">
-            <span
-              className="position-absolute top-0 start-0 translate-middle p-2 bg-white rounded-circle shadow"
-              style={{ zIndex: 2 }}
-            >
-              <i className="bi bi-heart" style={{ color: "#e63946" }}></i>
-            </span>
-            <img
-              src="https://via.placeholder.com/400x250"
-              alt="Work Culture"
-              className="img-fluid rounded shadow"
-            />
-          </div>
-        </div>
-
-        {/* Right Text Section */}
-        <div className="col-md-6 text-start mt-4 mt-md-0">
-          <p className="text-uppercase text-muted small">Inside Successive</p>
-          <h2 className="fw-bold mb-3">
-            Open Communication & Free Culture <br />
-            <span className="fw-bold">We Cherish Both.</span>
-          </h2>
-          <h5 className="fw-bold mb-3">Fostering creativity and innovation.</h5>
-          <p className="text-secondary mb-4">
-            We nurture a collaborative environment that empowers our team to share ideas and create
-            impactful solutions. Our culture fosters creativity, encourages innovation, and supports
-            professional growth.
-          </p>
-          <a href="#" className="text-danger fw-bold text-decoration-none">
-            Explore →
+    <div>
+      {/* Header */}
+      <nav className="navbar navbar-expand-lg navbar-light bg-white py-3">
+        <div className="container">
+          <a className="navbar-brand d-flex align-items-center" href="#">
+            <div className="d-flex align-items-center">
+              <div
+                className="bg-success text-white px-2 py-1 rounded me-1"
+                style={{ fontSize: "14px", fontWeight: "bold" }}
+              >
+                W
+              </div>
+              <span className="text-primary fw-bold fs-4">AZIFA</span>
+            </div>
           </a>
+
+          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span className="navbar-toggler-icon"></span>
+          </button>
+
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav mx-auto">
+              <li className="nav-item">
+                <a className="nav-link text-dark fw-medium" href="#">
+                  Home
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link text-muted" href="#">
+                  Find Jobs
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link text-muted" href="#">
+                  Job Alerts
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link text-muted" href="#">
+                  Find Candidates
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link text-muted" href="#">
+                  Career Advice
+                </a>
+              </li>
+            </ul>
+            <button
+              className="btn btn-success rounded-pill px-4 py-2"
+              style={{ backgroundColor: "#6B8E23", border: "none" }}
+            >
+              Register Now
+            </button>
+          </div>
         </div>
-      </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="py-5" style={{ backgroundColor: "#f8f9fa" }}>
+        <div className="container">
+          <div className="row align-items-center">
+            <div className="col-lg-6">
+              <div className="d-flex align-items-center mb-4">
+                <div className="me-4">
+                  <div
+                    className="rounded-circle border border-warning d-flex align-items-center justify-content-center"
+                    style={{ width: "120px", height: "120px", backgroundColor: "#fff3cd", position: "relative" }}
+                  >
+                    <div className="text-center">
+                      <div style={{ fontSize: "12px", color: "#856404", fontWeight: "500" }}>
+                        Apply for a Job
+                        <br />
+                        or
+                        <br />
+                        Get a Job
+                      </div>
+                      <div className="position-absolute" style={{ top: "20px", right: "20px" }}>
+                        ⭐
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h1 className="display-4 fw-bold text-primary mb-3" style={{ lineHeight: "1.2" }}>
+                    Get The Right Job
+                    <br />
+                    You Deserve
+                  </h1>
+                </div>
+              </div>
+
+              <p className="text-muted mb-4 fs-5">1,80,570 jobs listed here! Your dream jobs is waiting.</p>
+
+              {/* Search Form */}
+              <div className="row g-2">
+                <div className="col-md-5">
+                  <div className="input-group">
+                    <span className="input-group-text bg-white border-end-0">🔍</span>
+                    <input
+                      type="text"
+                      className="form-control border-start-0"
+                      placeholder="Job title or keyword"
+                      style={{ boxShadow: "none" }}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="input-group">
+                    <span className="input-group-text bg-white border-end-0">📍</span>
+                    <input
+                      type="text"
+                      className="form-control border-start-0"
+                      placeholder="New York, USA"
+                      style={{ boxShadow: "none" }}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-3">
+                  <button
+                    className="btn w-100 text-white fw-medium"
+                    style={{ backgroundColor: "#6B8E23", border: "none" }}
+                  >
+                    Search
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trending Jobs Section */}
+      <section className="py-5">
+        <div className="container">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h2 className="fw-bold text-dark">Trending Jobs</h2>
+            <a href="#" className="text-primary text-decoration-none">
+              See All Jobs
+            </a>
+          </div>
+
+          <div className="row g-4">
+            {/* Senior UI Designer */}
+            <div className="col-lg-4">
+              <div className="card h-100 border-0 shadow-sm" style={{ backgroundColor: "#d4edda" }}>
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 className="card-title fw-bold text-dark mb-1">Senior UI Designer</h5>
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted me-2">Microsoft</span>
+                        <span
+                          className="badge bg-primary rounded-circle"
+                          style={{ width: "8px", height: "8px" }}
+                        ></span>
+                      </div>
+                    </div>
+                    <div className="bg-primary text-white p-2 rounded" style={{ fontSize: "12px" }}>
+                      🏢
+                    </div>
+                  </div>
+
+                  <p className="text-muted small mb-3">
+                    Take advantage of a rare opportunity to start from the ground up and build...
+                  </p>
+
+                  <div className="d-flex align-items-center text-muted small mb-3">
+                    <span className="me-3">📍 Glendale, CA</span>
+                    <span>💼 Full-time</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-bold text-dark fs-4">$20K</div>
+                      <small className="text-muted">Monthly</small>
+                    </div>
+                    <button className="btn btn-outline-success rounded-pill px-4">Apply Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Designer */}
+            <div className="col-lg-4">
+              <div className="card h-100 border-0 shadow-sm" style={{ backgroundColor: "#e2e3f1" }}>
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 className="card-title fw-bold text-dark mb-1">Product Designer</h5>
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted me-2">Behance</span>
+                        <span
+                          className="badge bg-primary rounded-circle"
+                          style={{ width: "8px", height: "8px" }}
+                        ></span>
+                      </div>
+                    </div>
+                    <div className="bg-primary text-white p-2 rounded" style={{ fontSize: "12px" }}>
+                      Be
+                    </div>
+                  </div>
+
+                  <p className="text-muted small mb-3">
+                    The Sr Product Designer will be responsible for creating production assets...
+                  </p>
+
+                  <div className="d-flex align-items-center text-muted small mb-3">
+                    <span className="me-3">📍 Andover, MA</span>
+                    <span>💻 Remote</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-bold text-dark fs-4">$25K</div>
+                      <small className="text-muted">Monthly</small>
+                    </div>
+                    <button className="btn btn-outline-primary rounded-pill px-4">Apply Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Marketing Officer */}
+            <div className="col-lg-4">
+              <div className="card h-100 border-0 shadow-sm" style={{ backgroundColor: "#cce7ff" }}>
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 className="card-title fw-bold text-dark mb-1">Marketing Officer</h5>
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted me-2">Mail-chimp</span>
+                        <span
+                          className="badge bg-primary rounded-circle"
+                          style={{ width: "8px", height: "8px" }}
+                        ></span>
+                      </div>
+                    </div>
+                    <div className="bg-warning text-dark p-2 rounded fw-bold" style={{ fontSize: "12px" }}>
+                      M
+                    </div>
+                  </div>
+
+                  <p className="text-muted small mb-3">
+                    The Marketing Manager will work as part of a global, cross-functional team that creates...
+                  </p>
+
+                  <div className="d-flex align-items-center text-muted small mb-3">
+                    <span className="me-3">📍 Weston, MA</span>
+                    <span>💼 Full-time</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-bold text-dark fs-4">$15K</div>
+                      <small className="text-muted">Monthly</small>
+                    </div>
+                    <button className="btn btn-primary rounded-pill px-4">Apply Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* One Platform Many Solutions Section */}
+      <section className="py-5" style={{ backgroundColor: "#f1f3f4" }}>
+        <div className="container">
+          <div className="d-flex justify-content-between align-items-center mb-5">
+            <h2 className="fw-bold text-dark">One platform Many Solutions</h2>
+            <a href="#" className="text-primary text-decoration-none">
+              See All Platform
+            </a>
+          </div>
+
+          <div className="row g-4">
+            {/* Marketing */}
+            <div className="col-lg-3 col-md-6">
+              <div className="card border-0 shadow-sm h-100 p-3">
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3">
+                      <div className="bg-light rounded p-2">
+                        <span style={{ fontSize: "20px" }}>📊</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1">Marketing</h6>
+                      <small className="text-muted">58 Jobs Available</small>
+                    </div>
+                  </div>
+                  <span className="text-muted">›</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Development */}
+            <div className="col-lg-3 col-md-6">
+              <div className="card border-0 shadow-sm h-100 p-3">
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3">
+                      <div className="bg-light rounded p-2">
+                        <span style={{ fontSize: "20px" }}>💻</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1">Development</h6>
+                      <small className="text-muted">48 Jobs Available</small>
+                    </div>
+                  </div>
+                  <span className="text-muted">›</span>
+                </div>
+              </div>
+            </div>
+
+            {/* UI/UX Design - Highlighted */}
+            <div className="col-lg-3 col-md-6">
+              <div className="card border-0 shadow-sm h-100 p-3" style={{ backgroundColor: "#1e5a5a" }}>
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3">
+                      <div className="bg-success rounded p-2">
+                        <span style={{ fontSize: "20px", color: "white" }}>🎨</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1 text-white">UI/UX Design</h6>
+                      <small className="text-light">78 Jobs Available</small>
+                    </div>
+                  </div>
+                  <span className="text-light">›</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Human Research */}
+            <div className="col-lg-3 col-md-6">
+              <div className="card border-0 shadow-sm h-100 p-3">
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3">
+                      <div className="bg-light rounded p-2">
+                        <span style={{ fontSize: "20px" }}>👥</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1">Human Research</h6>
+                      <small className="text-muted">120 Jobs Available</small>
+                    </div>
+                  </div>
+                  <span className="text-muted">›</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Security */}
+            <div className="col-lg-3 col-md-6">
+              <div className="card border-0 shadow-sm h-100 p-3">
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3">
+                      <div className="bg-light rounded p-2">
+                        <span style={{ fontSize: "20px" }}>🔒</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1">Security</h6>
+                      <small className="text-muted">90 Jobs Available</small>
+                    </div>
+                  </div>
+                  <span className="text-muted">›</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Business */}
+            <div className="col-lg-3 col-md-6">
+              <div className="card border-0 shadow-sm h-100 p-3">
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3">
+                      <div className="bg-light rounded p-2">
+                        <span style={{ fontSize: "20px" }}>💼</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1">Business</h6>
+                      <small className="text-muted">31 Jobs Available</small>
+                    </div>
+                  </div>
+                  <span className="text-muted">›</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Management */}
+            <div className="col-lg-3 col-md-6">
+              <div className="card border-0 shadow-sm h-100 p-3">
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3">
+                      <div className="bg-light rounded p-2">
+                        <span style={{ fontSize: "20px" }}>📈</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1">Management</h6>
+                      <small className="text-muted">52 Jobs Available</small>
+                    </div>
+                  </div>
+                  <span className="text-muted">›</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Finance */}
+            <div className="col-lg-3 col-md-6">
+              <div className="card border-0 shadow-sm h-100 p-3">
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <div className="me-3">
+                      <div className="bg-light rounded p-2">
+                        <span style={{ fontSize: "20px" }}>💰</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-1">Finance</h6>
+                      <small className="text-muted">80 Jobs Available</small>
+                    </div>
+                  </div>
+                  <span className="text-muted">›</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Job Circulars Section */}
+      <section className="py-5">
+        <div className="container">
+          <h2 className="fw-bold text-dark mb-5">Featured job Circulars</h2>
+
+          <div className="row g-4">
+            {/* Senior UI Designer */}
+            <div className="col-lg-4 col-md-6">
+              <div className="card h-100 border-0 shadow-sm">
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 className="card-title fw-bold text-dark mb-1">Senior UI Designer</h5>
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted me-2">Microsoft</span>
+                        <span
+                          className="badge bg-primary rounded-circle"
+                          style={{ width: "8px", height: "8px" }}
+                        ></span>
+                      </div>
+                    </div>
+                    <div className="bg-primary text-white p-2 rounded" style={{ fontSize: "12px" }}>
+                      🏢
+                    </div>
+                  </div>
+
+                  <p className="text-muted small mb-3">
+                    Take advantage of a rare opportunity to start from the ground up and build..
+                  </p>
+
+                  <div className="d-flex align-items-center text-muted small mb-3">
+                    <span className="me-3">📍 Glendale, CA</span>
+                    <span>💼 Full-time</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-bold text-dark fs-4">$20K</div>
+                      <small className="text-muted">Monthly</small>
+                    </div>
+                    <button className="btn btn-outline-dark rounded-pill px-4">Apply Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Designer */}
+            <div className="col-lg-4 col-md-6">
+              <div className="card h-100 border-0 shadow-sm">
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 className="card-title fw-bold text-dark mb-1">Product Designer</h5>
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted me-2">Bechance</span>
+                        <span
+                          className="badge bg-primary rounded-circle"
+                          style={{ width: "8px", height: "8px" }}
+                        ></span>
+                      </div>
+                    </div>
+                    <div className="bg-primary text-white p-2 rounded" style={{ fontSize: "12px" }}>
+                      Be
+                    </div>
+                  </div>
+
+                  <p className="text-muted small mb-3">
+                    The Sr Product Designer will be responsible for creating production assets..
+                  </p>
+
+                  <div className="d-flex align-items-center text-muted small mb-3">
+                    <span className="me-3">📍 Andover, MA</span>
+                    <span>💻 Remote</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-bold text-dark fs-4">$25K</div>
+                      <small className="text-muted">Monthly</small>
+                    </div>
+                    <button className="btn text-white rounded-pill px-4" style={{ backgroundColor: "#1e5a5a" }}>
+                      Apply Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Marketing Officer */}
+            <div className="col-lg-4 col-md-6">
+              <div className="card h-100 border-0 shadow-sm">
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 className="card-title fw-bold text-dark mb-1">Marketing Officer</h5>
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted me-2">Mail-chimp</span>
+                        <span
+                          className="badge bg-primary rounded-circle"
+                          style={{ width: "8px", height: "8px" }}
+                        ></span>
+                      </div>
+                    </div>
+                    <div className="bg-warning text-dark p-2 rounded fw-bold" style={{ fontSize: "12px" }}>
+                      M
+                    </div>
+                  </div>
+
+                  <p className="text-muted small mb-3">
+                    The Marketing Manager will work as part of a global, cross-functional team that creates..
+                  </p>
+
+                  <div className="d-flex align-items-center text-muted small mb-3">
+                    <span className="me-3">📍 Weston, MA</span>
+                    <span>💼 Full-time</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-bold text-dark fs-4">$15K</div>
+                      <small className="text-muted">Monthly</small>
+                    </div>
+                    <button className="btn btn-outline-dark rounded-pill px-4">Apply Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* App development */}
+            <div className="col-lg-4 col-md-6">
+              <div className="card h-100 border-0 shadow-sm">
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 className="card-title fw-bold text-dark mb-1">App development</h5>
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted me-2">Airbnb</span>
+                        <span
+                          className="badge bg-primary rounded-circle"
+                          style={{ width: "8px", height: "8px" }}
+                        ></span>
+                      </div>
+                    </div>
+                    <div className="bg-danger text-white p-2 rounded" style={{ fontSize: "12px" }}>
+                      🏠
+                    </div>
+                  </div>
+
+                  <p className="text-muted small mb-3">
+                    The primary responsibility of the Player Development Executive is to effectively..
+                  </p>
+
+                  <div className="d-flex align-items-center text-muted small mb-3">
+                    <span className="me-3">📍 Remote</span>
+                    <span>💻 Remote</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-bold text-dark fs-4">$18K</div>
+                      <small className="text-muted">Monthly</small>
+                    </div>
+                    <button className="btn btn-outline-dark rounded-pill px-4">Apply Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* UX Engineer */}
+            <div className="col-lg-4 col-md-6">
+              <div className="card h-100 border-0 shadow-sm">
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 className="card-title fw-bold text-dark mb-1">UX Engineer</h5>
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted me-2">Discord</span>
+                        <span
+                          className="badge bg-primary rounded-circle"
+                          style={{ width: "8px", height: "8px" }}
+                        ></span>
+                      </div>
+                    </div>
+                    <div className="bg-primary text-white p-2 rounded" style={{ fontSize: "12px" }}>
+                      💬
+                    </div>
+                  </div>
+
+                  <p className="text-muted small mb-3">
+                    Our enterprise client has an immediate opening for a User Experience..
+                  </p>
+
+                  <div className="d-flex align-items-center text-muted small mb-3">
+                    <span className="me-3">📍 Remote</span>
+                    <span>💻 Remote</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-bold text-dark fs-4">$22K</div>
+                      <small className="text-muted">Monthly</small>
+                    </div>
+                    <button className="btn btn-outline-dark rounded-pill px-4">Apply Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Data Verification */}
+            <div className="col-lg-4 col-md-6">
+              <div className="card h-100 border-0 shadow-sm">
+                <div className="card-body p-4">
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <h5 className="card-title fw-bold text-dark mb-1">Data Verification</h5>
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted me-2">DriversEd</span>
+                        <span
+                          className="badge bg-primary rounded-circle"
+                          style={{ width: "8px", height: "8px" }}
+                        ></span>
+                      </div>
+                    </div>
+                    <div className="bg-warning text-dark p-2 rounded fw-bold" style={{ fontSize: "12px" }}>
+                      📊
+                    </div>
+                  </div>
+
+                  <p className="text-muted small mb-3">
+                    Cleveland-Cliffs has an opportunity for a Research Data Verification..
+                  </p>
+
+                  <div className="d-flex align-items-center text-muted small mb-3">
+                    <span className="me-3">📍 Remote</span>
+                    <span>💼 Full-time</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-bold text-dark fs-4">$16K</div>
+                      <small className="text-muted">Monthly</small>
+                    </div>
+                    <button className="btn btn-outline-dark rounded-pill px-4">Apply Now</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Get Matched Section */}
+      <section className="py-5" style={{ backgroundColor: "#f1f3f4" }}>
+        <div className="container">
+          <div className="row align-items-center">
+            <div className="col-lg-6">
+              <h2 className="fw-bold text-dark mb-4" style={{ lineHeight: "1.3" }}>
+                Get Matched The Most Valuable Jobs, Just Drop Your CV at Wazifa
+              </h2>
+              <p className="text-muted mb-4">
+                In the subject line of your email, write your name, the description of the position and its reference
+                number. If you did not find the vacancy on the employer's website, it's helpful to state where you found
+                it.
+              </p>
+              <button
+                className="btn text-white fw-medium px-4 py-2 rounded-pill"
+                style={{ backgroundColor: "#9ACD32", border: "none" }}
+              >
+                Register Now
+              </button>
+            </div>
+            <div className="col-lg-6">
+              <div className="card border-0 shadow-sm">
+                <div className="card-header text-white text-center py-3" style={{ backgroundColor: "#1e5a5a" }}>
+                  <div className="d-flex align-items-center justify-content-center">
+                    <div
+                      className="bg-success text-white px-2 py-1 rounded me-2"
+                      style={{ fontSize: "14px", fontWeight: "bold" }}
+                    >
+                      W
+                    </div>
+                    <span className="text-white fw-bold fs-5">AZIFA</span>
+                  </div>
+                </div>
+                <div className="card-body p-4">
+                  <form>
+                    <div className="mb-3">
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Enter your name"
+                        style={{ border: "1px solid #ddd", padding: "12px" }}
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <input
+                        type="email"
+                        className="form-control"
+                        placeholder="Enter your email"
+                        style={{ border: "1px solid #ddd", padding: "12px" }}
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <select className="form-select" style={{ border: "1px solid #ddd", padding: "12px" }}>
+                        <option>Select Candidates</option>
+                        <option>Junior Developer</option>
+                        <option>Senior Developer</option>
+                        <option>Designer</option>
+                        <option>Manager</option>
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <select className="form-select" style={{ border: "1px solid #ddd", padding: "12px" }}>
+                        <option>Proposal</option>
+                        <option>Full-time Position</option>
+                        <option>Part-time Position</option>
+                        <option>Contract Work</option>
+                        <option>Freelance</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter Section */}
+      <section className="py-5" style={{ backgroundColor: "#1e5a5a" }}>
+        <div className="container">
+          <div className="text-center text-white">
+            <h2 className="fw-bold mb-3">Never Want to Miss Any Job News?</h2>
+            <p className="mb-4 text-light">
+              Subscribe to stay up-to-date on insights, events and new solutions.
+              <br />
+              You can unsubscribe at any time.
+            </p>
+            <div className="row justify-content-center">
+              <div className="col-lg-6">
+                <div className="d-flex gap-2">
+                  <input
+                    type="email"
+                    className="form-control"
+                    placeholder="Enter your address"
+                    style={{ padding: "12px", borderRadius: "25px", border: "none" }}
+                  />
+                  <button
+                    className="btn text-dark fw-medium px-4"
+                    style={{ backgroundColor: "#9ACD32", border: "none", borderRadius: "25px" }}
+                  >
+                    Subscribe
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  );
+  )
+}
+
+
+
+
+
+
+
+
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
+
+const Homepage = () => {
+    // Job Data
+    const allJobs = [
+        { id: 1, title: "Senior UI Designer", company: "Microsoft", salary: "$20K", type: "Full-time", location: "Glendale, CA", category: "UI/UX Design" },
+        { id: 2, title: "Product Designer", company: "Behance", salary: "$25K", type: "Remote", location: "Andover, MA", category: "UI/UX Design" },
+        { id: 3, title: "Marketing Officer", company: "Mailchimp", salary: "$15K", type: "Full-time", location: "Weston, MA", category: "Marketing" },
+        { id: 4, title: "Frontend Developer", company: "Google", salary: "$30K", type: "Full-time", location: "San Francisco, CA", category: "Development" },
+        { id: 5, title: "Business Analyst", company: "IBM", salary: "$18K", type: "Full-time", location: "New York, NY", category: "Business" },
+        { id: 6, title: "Finance Manager", company: "Deloitte", salary: "$28K", type: "Full-time", location: "Chicago, IL", category: "Finance" },
+    ];
+
+    // Categories
+    const categories = [
+        { name: "Marketing", icon: "bi-megaphone" },
+        { name: "Development", icon: "bi-code-slash" },
+        { name: "UI/UX Design", icon: "bi-palette-fill" },
+        { name: "Human Research", icon: "bi-people-fill" },
+        { name: "Security", icon: "bi-shield-lock-fill" },
+        { name: "Business", icon: "bi-briefcase-fill" },
+        { name: "Management", icon: "bi-diagram-3-fill" },
+        { name: "Finance", icon: "bi-cash-stack" }
+    ];
+
+    // State
+    const [selectedCategory, setSelectedCategory] = useState(null);
+
+    // Filter Jobs
+    const filteredJobs = selectedCategory
+        ? allJobs.filter(job => job.category === selectedCategory)
+        : allJobs;
+
+    return (
+        <div>
+            {/* Navbar */}
+            <div className="container py-4">
+                <nav className="d-flex justify-content-between align-items-center mb-4">
+                    <h3 className="fw-bold text-success">AZIFA</h3>
+                    <ul className="nav">
+                        <li className="nav-item"><a href="#" className="nav-link text-dark">Home</a></li>
+                        <li className="nav-item"><a href="#" className="nav-link text-dark">Find Jobs</a></li>
+                        <li className="nav-item"><a href="#" className="nav-link text-dark">Job Alerts</a></li>
+                        <li className="nav-item"><a href="#" className="nav-link text-dark">Find Candidates</a></li>
+                        <li className="nav-item"><a href="#" className="nav-link text-dark">Career Advice</a></li>
+                    </ul>
+                    <button className="btn btn-success rounded-pill px-4">Register Now</button>
+                </nav>
+
+                {/* Hero Section */}
+                <div className="text-center my-5">
+                    <h1 className="fw-bold display-5">Get The Right Job <br /> You Deserve</h1>
+                    <p className="text-secondary">1,80,570 jobs listed here! Your dream job is waiting.</p>
+                </div>
+
+                {/* Search Bar */}
+                <div className="d-flex justify-content-center mb-5">
+                    <div className="input-group w-50 shadow-sm rounded-pill">
+                        <input type="text" className="form-control rounded-start-pill" placeholder="Job title or keyword" />
+                        <input type="text" className="form-control" placeholder="Location" />
+                        <button className="btn btn-success rounded-end-pill px-4">Search</button>
+                    </div>
+                </div>
+
+                {/* One Platform Many Solutions */}
+                <div className="bg-light py-5 mb-5 rounded">
+                    <div className="container">
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <h4 className="fw-bold">One platform Many Solutions</h4>
+                            <a href="#" className="text-primary fw-bold text-decoration-none">See All Platform</a>
+                        </div>
+
+                        {/* Category Buttons */}
+                        <div className="row g-3">
+                            {categories.map((item, index) => (
+                                <div className="col-6 col-md-3" key={index}>
+                                    <div
+                                        className={`d-flex align-items-center justify-content-between bg-white shadow-sm rounded-pill px-3 py-2 ${selectedCategory === item.name ? 'border border-primary' : ''}`}
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => setSelectedCategory(item.name)}
+                                    >
+                                        <i className={`bi ${item.icon} text-primary fs-5`}></i>
+                                        <div className="ms-2 flex-grow-1">
+                                            <h6 className="mb-0">{item.name}</h6>
+                                            <small className="text-muted">Jobs Available</small>
+                                        </div>
+                                        <i className="bi bi-chevron-right"></i>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Featured Jobs */}
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h4 className="fw-bold">
+                        {selectedCategory ? `${selectedCategory} Jobs` : "Featured Job Circulars"}
+                    </h4>
+                    {selectedCategory && (
+                        <button
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => setSelectedCategory(null)}
+                        >
+                            Show All
+                        </button>
+                    )}
+                </div>
+
+                {/* Job Cards */}
+                <div className="row g-4 mb-5">
+                    {filteredJobs.length > 0 ? (
+                        filteredJobs.map((job) => (
+                            <div className="col-md-4" key={job.id}>
+                                <div className="card p-3 shadow-sm border-0">
+                                    <h5 className="fw-bold">{job.title}</h5>
+                                    <p className="text-muted mb-1">{job.company}</p>
+                                    <p className="text-secondary mb-2">
+                                        <i className="bi bi-geo-alt"></i> {job.location} | {job.type}
+                                    </p>
+                                    <h5 className="fw-bold">{job.salary} <small className="text-muted">Monthly</small></h5>
+                                    <button className="btn btn-outline-primary rounded-pill w-100">Apply Now</button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-center text-muted">No jobs available for this category.</p>
+                    )}
+                </div>
+
+                {/* CV Upload Section */}
+                <div className="row align-items-center bg-light p-4 rounded mb-5">
+                    <div className="col-md-6">
+                        <h3 className="fw-bold">Get Matched The Most Valuable Jobs, Just Drop Your CV at Wazifa</h3>
+                        <p className="text-muted">
+                            In the subject line of your email, write your name, the description of the position and its reference number.
+                            If you did not find the vacancy on the employer's website, it’s helpful to state where you found it.
+                        </p>
+                        <button className="btn btn-success rounded-pill px-4">Register Now</button>
+                    </div>
+                    <div className="col-md-6">
+                        <div className="bg-white shadow-sm rounded p-4">
+                            <h5 className="fw-bold mb-3 text-success">WAZIFA</h5>
+                            <input type="text" className="form-control mb-3" placeholder="Enter your name" />
+                            <input type="email" className="form-control mb-3" placeholder="Enter your email" />
+                            <select className="form-select mb-3">
+                                <option>Select Candidates</option>
+                                <option>Designer</option>
+                                <option>Developer</option>
+                            </select>
+                            <select className="form-select mb-3">
+                                <option>Proposal</option>
+                                <option>Internship</option>
+                                <option>Full-time</option>
+                            </select>
+                            <button className="btn btn-success w-100 rounded-pill">Submit</button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Newsletter Section */}
+                <div className="bg-dark text-white p-4 rounded" style={{ maxWidth: "80%", margin: "0 auto" }}>
+                    <h3 className="fw-bold text-center">Never Want to Miss Any Job News?</h3>
+                    <p className="text-center text-light mb-3">
+                        Subscribe to stay up-to-date on insights, events and new solutions. You can unsubscribe at any time.
+                    </p>
+                    <div className="d-flex justify-content-center">
+                        <input type="email" className="form-control w-50 rounded-start-pill" placeholder="Enter your address" />
+                        <button className="btn btn-success rounded-end-pill px-4">Subscribe</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    );
 };
 
-export default CultureSection;
+export default Homepage;
+
+
+
+
+
+
+
