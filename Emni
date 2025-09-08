@@ -997,3 +997,509 @@ export default Homepage;
 
 
 
+
+
+
+
+
+
+
+--------------------------life at---------------------------
+// Homepage.js
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+const testimonials = [
+  {
+    text: "More than a job — I learned and grew every day.",
+    name: "Almaa",
+    role: "UI/UX Designer",
+  },
+  {
+    text: "Every day at Nukta has been a journey of learning and personal growth.",
+    name: "Arsalan",
+    role: "Software Engineer",
+  },
+  {
+    text: "Every day at Nukta has been an opportunity for growth and learning.",
+    name: "John",
+    role: "QA Specialist",
+  },
+  {
+    text: "At Nukta, I discover something new and valuable each day.",
+    name: "Noah",
+    role: "Marketing Executive",
+  },
+];
+
+const Homepage = () => {
+  return (
+    <div className="container py-5">
+      {/* Header */}
+      <div className="text-center mb-5">
+        <h2 className="fw-bold">Life at Nukta</h2>
+        <p className="text-muted w-75 mx-auto">
+          We do more than just work — we learn together, celebrate milestones,
+          and create lasting memories. From team outings to office moments,
+          every day at Nukta is full of energy, connection, and collaboration.
+        </p>
+      </div>
+
+      {/* Grid */}
+      <div className="row g-4">
+        {/* Testimonial + Image Layout */}
+        <div className="col-md-6 col-lg-4">
+          <div className="card border shadow rounded-4 h-100 p-3">
+            <p className="mb-3">{testimonials[0].text}</p>
+            <h6 className="fw-bold mb-0">{testimonials[0].name}</h6>
+            <small className="text-muted">{testimonials[0].role}</small>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <img
+            src="https://via.placeholder.com/400x250"
+            className="img-fluid border shadow rounded-4"
+            alt="teamwork"
+          />
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <img
+            src="https://via.placeholder.com/400x250"
+            className="img-fluid border shadow rounded-4"
+            alt="office"
+          />
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <img
+            src="https://via.placeholder.com/400x250"
+            className="img-fluid border shadow rounded-4"
+            alt="discussion"
+          />
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card border shadow rounded-4 h-100 p-3">
+            <p className="mb-3">{testimonials[1].text}</p>
+            <h6 className="fw-bold mb-0">{testimonials[1].name}</h6>
+            <small className="text-muted">{testimonials[1].role}</small>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card border shadow rounded-4 h-100 p-3">
+            <p className="mb-3">{testimonials[2].text}</p>
+            <h6 className="fw-bold mb-0">{testimonials[2].name}</h6>
+            <small className="text-muted">{testimonials[2].role}</small>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <img
+            src="https://via.placeholder.com/400x250"
+            className="img-fluid border shadow rounded-4"
+            alt="mentorship"
+          />
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <img
+            src="https://via.placeholder.com/400x250"
+            className="img-fluid border shadow rounded-4"
+            alt="coffee"
+          />
+        </div>
+
+        <div className="col-md-6 col-lg-4">
+          <div className="card border shadow rounded-4 h-100 p-3">
+            <p className="mb-3">{testimonials[3].text}</p>
+            <h6 className="fw-bold mb-0">{testimonials[3].name}</h6>
+            <small className="text-muted">{testimonials[3].role}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Homepage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------life at---------------------------------------
+"use client"
+
+export default function LifeAtNukta() {
+  return (
+    <div>
+      {/* Header */}
+      <nav className="navbar navbar-expand-lg navbar-light bg-white py-3 shadow-sm">
+        <div className="container">
+          <a className="navbar-brand d-flex align-items-center" href="/">
+            <div className="d-flex align-items-center">
+              <div
+                style={{
+                  backgroundColor: "#9ACD32",
+                  color: "white",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  marginRight: "8px",
+                }}
+              >
+                W
+              </div>
+              <span style={{ color: "#2C5F5D", fontWeight: "bold", fontSize: "24px" }}>AZIFA</span>
+            </div>
+          </a>
+
+          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span className="navbar-toggler-icon"></span>
+          </button>
+
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav mx-auto">
+              <li className="nav-item">
+                <a className="nav-link" href="/">
+                  Home
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="#">
+                  Find Jobs
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="#">
+                  Job Alerts
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="#">
+                  Find Candidates
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link active" href="/life-at-nukta">
+                  Career Advice
+                </a>
+              </li>
+            </ul>
+            <button className="btn text-white px-4 py-2 rounded-pill" style={{ backgroundColor: "#6B8E23" }}>
+              Register Now
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="container my-5">
+        {/* Header Section */}
+        <div className="text-center mb-5">
+          <h1 className="display-4 fw-bold mb-4" style={{ color: "#2C5F5D" }}>
+            Life at Nukta
+          </h1>
+          <p className="lead text-muted mx-auto" style={{ maxWidth: "600px" }}>
+            We do more than just work — we learn together, celebrate milestones, and create lasting memories. From team
+            outings to office moments, every day at Nukta is full of energy, connection, and collaboration.
+          </p>
+        </div>
+
+        {/* Masonry Grid Layout */}
+        <div className="row g-4">
+          {/* Column 1 */}
+          <div className="col-lg-4 col-md-6">
+            <div className="mb-4">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body text-center p-4">
+                  <p className="fst-italic mb-4" style={{ fontSize: "18px", color: "#2C5F5D" }}>
+                    "More than a job — I learned and grew every day."
+                  </p>
+                  <div className="d-flex align-items-center justify-content-center">
+                    <img
+                      src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50&h=50&fit=crop&crop=face"
+                      alt="Almas"
+                      className="rounded-circle me-3"
+                      style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                    />
+                    <div className="text-start">
+                      <div className="fw-bold">Almas</div>
+                      <small className="text-muted">UI/UX Designer</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <img
+                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=300&fit=crop"
+                alt="Team collaboration"
+                className="img-fluid rounded shadow-sm"
+                style={{ width: "100%", height: "250px", objectFit: "cover" }}
+              />
+            </div>
+
+            <div className="mb-4">
+              <img
+                src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=200&fit=crop"
+                alt="Workspace design"
+                className="img-fluid rounded shadow-sm"
+                style={{ width: "100%", height: "200px", objectFit: "cover" }}
+              />
+            </div>
+          </div>
+
+          {/* Column 2 */}
+          <div className="col-lg-4 col-md-6">
+            <div className="mb-4">
+              <img
+                src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=250&fit=crop"
+                alt="Business handshake"
+                className="img-fluid rounded shadow-sm"
+                style={{ width: "100%", height: "200px", objectFit: "cover" }}
+              />
+            </div>
+
+            <div className="mb-4">
+              <img
+                src="https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=300&fit=crop"
+                alt="Team meeting"
+                className="img-fluid rounded shadow-sm"
+                style={{ width: "100%", height: "250px", objectFit: "cover" }}
+              />
+            </div>
+
+            <div className="mb-4">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body text-center p-4">
+                  <p className="fst-italic mb-4" style={{ fontSize: "18px", color: "#2C5F5D" }}>
+                    "Every day at Nukta has been an opportunity for growth and learning."
+                  </p>
+                  <div className="d-flex align-items-center justify-content-center">
+                    <img
+                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face"
+                      alt="John"
+                      className="rounded-circle me-3"
+                      style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                    />
+                    <div className="text-start">
+                      <div className="fw-bold">John</div>
+                      <small className="text-muted">QA Specialist</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <img
+                src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=250&fit=crop"
+                alt="Coding workspace"
+                className="img-fluid rounded shadow-sm"
+                style={{ width: "100%", height: "200px", objectFit: "cover" }}
+              />
+            </div>
+          </div>
+
+          {/* Column 3 */}
+          <div className="col-lg-4 col-md-6">
+            <div className="mb-4">
+              <img
+                src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&h=300&fit=crop"
+                alt="Team working together"
+                className="img-fluid rounded shadow-sm"
+                style={{ width: "100%", height: "250px", objectFit: "cover" }}
+              />
+            </div>
+
+            <div className="mb-4">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body text-center p-4">
+                  <p className="fst-italic mb-4" style={{ fontSize: "18px", color: "#2C5F5D" }}>
+                    "Every day at Nukta has been a journey of learning and personal growth."
+                  </p>
+                  <div className="d-flex align-items-center justify-content-center">
+                    <img
+                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face"
+                      alt="Arsalan"
+                      className="rounded-circle me-3"
+                      style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                    />
+                    <div className="text-start">
+                      <div className="fw-bold">Arsalan</div>
+                      <small className="text-muted">Software Engineer</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <img
+                src="https://images.unsplash.com/photo-1545665277-5937750d4f87?w=400&h=200&fit=crop"
+                alt="Focused work session"
+                className="img-fluid rounded shadow-sm"
+                style={{ width: "100%", height: "180px", objectFit: "cover" }}
+              />
+            </div>
+
+            <div className="mb-4">
+              <img
+                src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=200&fit=crop"
+                alt="Coffee culture"
+                className="img-fluid rounded shadow-sm"
+                style={{ width: "100%", height: "180px", objectFit: "cover" }}
+              />
+            </div>
+
+            <div className="mb-4">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body text-center p-4">
+                  <p className="fst-italic mb-4" style={{ fontSize: "18px", color: "#2C5F5D" }}>
+                    "At Nukta, I discover something new and valuable each day."
+                  </p>
+                  <div className="d-flex align-items-center justify-content-center">
+                    <img
+                      src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop&crop=face"
+                      alt="Noah"
+                      className="rounded-circle me-3"
+                      style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                    />
+                    <div className="text-start">
+                      <div className="fw-bold">Noah</div>
+                      <small className="text-muted">Marketing Executive</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="text-center mt-5 pt-5">
+          <h3 className="mb-4" style={{ color: "#2C5F5D" }}>
+            Ready to Join Our Team?
+          </h3>
+          <p className="text-muted mb-4">Discover opportunities to grow, learn, and make an impact at Nukta.</p>
+          <button className="btn text-white px-5 py-3 rounded-pill me-3" style={{ backgroundColor: "#6B8E23" }}>
+            View Open Positions
+          </button>
+          <button className="btn btn-outline-secondary px-5 py-3 rounded-pill">Learn More About Us</button>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-light py-5 mt-5">
+        <div className="container">
+          <div className="row">
+            <div className="col-md-6">
+              <div className="d-flex align-items-center mb-3">
+                <div
+                  style={{
+                    backgroundColor: "#9ACD32",
+                    color: "white",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    marginRight: "8px",
+                  }}
+                >
+                  W
+                </div>
+                <span style={{ color: "#2C5F5D", fontWeight: "bold", fontSize: "24px" }}>AZIFA</span>
+              </div>
+              <p className="text-muted">
+                Connecting talented professionals with amazing opportunities. Your dream job is just a click away.
+              </p>
+            </div>
+            <div className="col-md-6">
+              <div className="row">
+                <div className="col-6">
+                  <h6 className="fw-bold mb-3">For Job Seekers</h6>
+                  <ul className="list-unstyled">
+                    <li>
+                      <a href="#" className="text-muted text-decoration-none">
+                        Browse Jobs
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#" className="text-muted text-decoration-none">
+                        Career Advice
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#" className="text-muted text-decoration-none">
+                        Resume Builder
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div className="col-6">
+                  <h6 className="fw-bold mb-3">For Employers</h6>
+                  <ul className="list-unstyled">
+                    <li>
+                      <a href="#" className="text-muted text-decoration-none">
+                        Post Jobs
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#" className="text-muted text-decoration-none">
+                        Find Candidates
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#" className="text-muted text-decoration-none">
+                        Pricing
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <hr className="my-4" />
+          <div className="text-center text-muted">
+            <p>&copy; 2024 AZIFA. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+
+
+
+
+
+
