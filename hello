@@ -1,340 +1,328 @@
-@Transactional
-public Map<String, Integer> allocateSupply(String deployProfileId, int availableQuantity, LocalDate allocationDate) {
-    Map<String, Integer> allocationResult = new LinkedHashMap<>();
+import React, { useEffect } from "react";
+import { gsap } from "gsap";
+import { Observer } from "gsap/Observer";
+import "./Homepage.css";
 
-    try {
-        // Step 1: Fetch priority duration and plan date
-        String prioritySql = "SELECT priority_dur, plan_date FROM sclrp.rp_deploy_profile " +
-                           "WHERE deployprofileid = :deployProfileId";
-        Object[] priorityData = (Object[]) entityManager.createNativeQuery(prioritySql)
-            .setParameter("deployProfileId", deployProfileId)
-            .getSingleResult();
+gsap.registerPlugin(Observer);
 
-        int priorityDur = ((Number) priorityData[0]).intValue();
-        LocalDate planDate = ((Date) priorityData[1]).toLocalDate();
-        LocalDate endDate = planDate.plusDays(priorityDur);
+export default function Homepage() {
+  useEffect(() => {
+    const sections = gsap.utils.toArray(".slide");
+    const images = gsap.utils.toArray(".image").reverse();
+    const slideImages = gsap.utils.toArray(".slide__img");
+    const outerWrappers = gsap.utils.toArray(".slide__outer");
+    const innerWrappers = gsap.utils.toArray(".slide__inner");
+    const count = document.querySelector(".count");
+    const wrap = gsap.utils.wrap(0, sections.length);
 
-        // Step 2: Validate allocation date against priority window
-        if (allocationDate.isBefore(planDate) || allocationDate.isAfter(endDate)) {
-            System.out.println("⚠️ Allocation date " + allocationDate + " is outside priority duration: " + 
-                             planDate + " to " + endDate);
-            return allocationResult; // Return empty result for invalid dates
+    let animating;
+    let currentIndex = 0;
+
+    gsap.set(outerWrappers, { xPercent: 100 });
+    gsap.set(innerWrappers, { xPercent: -100 });
+    gsap.set(".slide:nth-of-type(1) .slide__outer", { xPercent: 0 });
+    gsap.set(".slide:nth-of-type(1) .slide__inner", { xPercent: 0 });
+
+    function gotoSection(index, direction) {
+      animating = true;
+      index = wrap(index);
+
+      let tl = gsap.timeline({
+        defaults: { duration: 1, ease: "expo.inOut" },
+        onComplete: () => {
+          animating = false;
         }
+      });
 
-        // Step 3: Get dmd_pty_config for the profile
-        String configSql = "SELECT dmd_pty_config FROM sclrp.rp_deploy_profile WHERE deployprofileid = :deployProfileId";
-        String dmdPtyConfig = (String) entityManager.createNativeQuery(configSql)
-            .setParameter("deployProfileId", deployProfileId)
-            .getSingleResult();
+      let currentSection = sections[currentIndex];
+      let heading = currentSection.querySelector(".slide__heading");
+      let nextSection = sections[index];
+      let nextHeading = nextSection.querySelector(".slide__heading");
 
-        // Step 4: Fetch demand types and priorities
-        String demandSql = "SELECT dmd_type, pty FROM sclrp.rp_dmd_pty_config WHERE dmd_pty_config = :dmdPtyConfig ORDER BY pty ASC";
-        List<Object[]> demandPriorities = entityManager.createNativeQuery(demandSql)
-            .setParameter("dmdPtyConfig", dmdPtyConfig)
-            .getResultList();
+      gsap.set([sections, images], { zIndex: 0, autoAlpha: 0 });
+      gsap.set([sections[currentIndex], images[index]], { zIndex: 1, autoAlpha: 1 });
+      gsap.set([sections[index], images[currentIndex]], { zIndex: 2, autoAlpha: 1 });
 
-        // Step 5: Fetch demand volumes WITHIN PRIORITY DURATION
-        String demandVolumeSql = "SELECT dmd_type, location_id, demand_qty " +
-                               "FROM sclrp.rp_demand " +
-                               "WHERE deployprofileid = :deployProfileId " +
-                               "AND demand_date BETWEEN :planDate AND :endDate";
-        List<Object[]> demandVolumes = entityManager.createNativeQuery(demandVolumeSql)
-            .setParameter("deployProfileId", deployProfileId)
-            .setParameter("planDate", planDate)
-            .setParameter("endDate", endDate)
-            .getResultList();
+      tl
+        .set(count, { text: index + 1 }, 0.32)
+        .fromTo(
+          outerWrappers[index],
+          { xPercent: 100 * direction },
+          { xPercent: 0 },
+          0
+        )
+        .fromTo(
+          innerWrappers[index],
+          { xPercent: -100 * direction },
+          { xPercent: 0 },
+          0
+        )
+        .to(
+          heading,
+          { "--width": 800, xPercent: 30 * direction },
+          0
+        )
+        .fromTo(
+          nextHeading,
+          { "--width": 800, xPercent: -30 * direction },
+          { "--width": 200, xPercent: 0 },
+          0
+        )
+        .fromTo(
+          images[index],
+          { xPercent: 125 * direction, scaleX: 1.5, scaleY: 1.3 },
+          { xPercent: 0, scaleX: 1, scaleY: 1, duration: 1 },
+          0
+        )
+        .fromTo(
+          images[currentIndex],
+          { xPercent: 0, scaleX: 1, scaleY: 1 },
+          { xPercent: -125 * direction, scaleX: 1.5, scaleY: 1.3 },
+          0
+        )
+        .fromTo(
+          slideImages[index],
+          { scale: 2 },
+          { scale: 1 },
+          0
+        )
+        .timeScale(0.8);
 
-
-        /*
-                    // Step 5: Fetch demand records
-            String demandSql = "SELECT dmd_type, location_id, demand_qty " +
-                    "FROM sclrp.rp_demand " +
-                    "WHERE deployprofileid = :deployProfileId " +
-                    "AND demand_date BETWEEN :planDate AND :endDate";
-
-            List<DemandEntry> demandEntries = jdbcTemplate.query(
-                    demandSql,
-                    params,
-                    (rs, rowNum) -> {
-                        DemandEntry entry = new DemandEntry();
-                        entry.dmdType = rs.getString("dmd_type");
-                        entry.locationId = rs.getString("location_id");
-                        entry.demandQty = rs.getInt("demand_qty");
-
-                        // 23.03: Explicit check & log for Base Forecast recognition
-                        if ("Base Forecast".equalsIgnoreCase(entry.dmdType)) {
-                            log.info("23.03 TRACE: Base Forecast demand recognized for location {} with qty {}",
-                                    entry.locationId, entry.demandQty);
-                        }
-
-                        return entry;
-                    }
-            );
-
-            // 23.03: At this point, Base Forecast demands are explicitly logged.
-            // This ensures test case 23.03 can be validated by auditors.
-        */
-
-        // Step 6: Organize demand volumes by type and location
-        Map<String, List<DemandEntry>> demandMap = new HashMap<>();
-        for (Object[] row : demandVolumes) {
-            String dmdType = (String) row[0];
-            String locationId = (String) row[1];
-            int qty = ((Number) row[2]).intValue();
-
-            demandMap.computeIfAbsent(dmdType, k -> new ArrayList<>())
-                    .add(new DemandEntry(locationId, qty));
-        }
-
-        // Step 7: Allocate supply based on priority (existing logic)
-        for (Object[] dp : demandPriorities) {
-            String dmdType = (String) dp[0];
-            List<DemandEntry> entries = demandMap.getOrDefault(dmdType, new ArrayList<>());
-
-            int totalDemand = entries.stream().mapToInt(e -> e.demandQty).sum();
-            if (totalDemand == 0) continue;
-
-            for (DemandEntry entry : entries) {
-                if (availableQuantity <= 0) break;
-
-                double ratio = (double) entry.demandQty / totalDemand;
-                int allocQty = (int) Math.floor(ratio * availableQuantity);
-                allocQty = Math.min(allocQty, entry.demandQty);
-
-                String key = entry.locationId + " (" + dmdType + ")";
-                allocationResult.put(key, allocQty);
-            }
-
-            availableQuantity -= allocationResult.values().stream()
-                .mapToInt(Integer::intValue).sum();
-        }
-
-        System.out.println("✅ Allocation completed for date " + allocationDate + 
-                         " (Priority window: " + planDate + " to " + endDate + ")");
-    } catch (Exception e) {
-        System.out.println("❌ Allocation failed: " + e.getMessage());
-        throw new RuntimeException("Allocation error", e);
+      currentIndex = index;
     }
 
-    return allocationResult;
+    Observer.create({
+      type: "wheel,touch,pointer",
+      preventDefault: true,
+      wheelSpeed: -1,
+      onUp: () => {
+        if (animating) return;
+        gotoSection(currentIndex + 1, +1);
+      },
+      onDown: () => {
+        if (animating) return;
+        gotoSection(currentIndex - 1, -1);
+      },
+      tolerance: 10
+    });
+
+    const logKey = (e) => {
+      if ((e.code === "ArrowUp" || e.code === "ArrowLeft") && !animating) {
+        gotoSection(currentIndex - 1, -1);
+      }
+      if (
+        (e.code === "ArrowDown" ||
+          e.code === "ArrowRight" ||
+          e.code === "Space" ||
+          e.code === "Enter") &&
+        !animating
+      ) {
+        gotoSection(currentIndex + 1, 1);
+      }
+    };
+
+    document.addEventListener("keydown", logKey);
+
+    return () => {
+      document.removeEventListener("keydown", logKey);
+    };
+  }, []);
+
+  return (
+    <>
+      {/* SLIDES */}
+      <section className="slide">
+        <div className="slide__outer">
+          <div className="slide__inner">
+            <div className="slide__content">
+              <div className="slide__container">
+                <h2 className="slide__heading">subhrajit</h2>
+                <figure className="slide__img-cont">
+                  <img
+                    className="slide__img"
+                    src="https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?w=400"
+                    alt=""
+                  />
+                </figure>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="slide">
+        <div className="slide__outer">
+          <div className="slide__inner">
+            <div className="slide__content">
+              <div className="slide__container">
+                <h2 className="slide__heading">john</h2>
+                <figure className="slide__img-cont">
+                  <img
+                    className="slide__img"
+                    src="https://images.unsplash.com/photo-1558603668-6570496b66f8?w=400"
+                    alt=""
+                  />
+                </figure>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="slide">
+        <div className="slide__outer">
+          <div className="slide__inner">
+            <div className="slide__content">
+              <div className="slide__container">
+                <h2 className="slide__heading">rachana</h2>
+                <figure className="slide__img-cont">
+                  <img
+                    className="slide__img"
+                    src="https://images.unsplash.com/photo-1593642532973-d31b6557fa68?w=400"
+                    alt=""
+                  />
+                </figure>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="slide">
+        <div className="slide__outer">
+          <div className="slide__inner">
+            <div className="slide__content">
+              <div className="slide__container">
+                <h2 className="slide__heading">koyel</h2>
+                <figure className="slide__img-cont">
+                  <img
+                    className="slide__img"
+                    src="https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=400"
+                    alt=""
+                  />
+                </figure>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="slide">
+        <div className="slide__outer">
+          <div className="slide__inner">
+            <div className="slide__content">
+              <div className="slide__container">
+                <h2 className="slide__heading">kabita</h2>
+                <figure className="slide__img-cont">
+                  <img
+                    className="slide__img"
+                    src="https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=400"
+                    alt=""
+                  />
+                </figure>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="slide">
+        <div className="slide__outer">
+          <div className="slide__inner">
+            <div className="slide__content">
+              <div className="slide__container">
+                <h2 className="slide__heading"></h2>
+                <figure className="slide__img-cont">
+                  <img
+                    className="slide__img"
+                    src="https://images.unsplash.com/photo-1522204523234-8729aa6e3d8c?w=400"
+                    alt=""
+                  />
+                </figure>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* overlay */}
+      <section className="overlay">
+        <div className="overlay__content">
+          <p className="overlay__count">0<span className="count">1</span></p>
+          <figure className="overlay__img-cont">
+            <img className="image" src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800" alt="" />
+            <img className="image" src="https://images.unsplash.com/photo-1594666757003-3ee20de41568?w=800" alt="" />
+            <img className="image" src="https://images.unsplash.com/photo-1579830341096-05f2f31b8259?w=800" alt="" />
+            <img className="image" src="https://images.unsplash.com/photo-1603771628302-c32c88e568e3?w=800" alt="" />
+            <img className="image" src="https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?w=800" alt="" />
+            <img className="image" src="https://images.unsplash.com/photo-1558980664-10ea89d638f8?w=800" alt="" />
+          </figure>
+        </div>
+      </section>
+    </>
+  );
 }
 
-// Helper class (unchanged)
-private static class DemandEntry {
-    String locationId;
-    int demandQty;
-    DemandEntry(String locationId, int demandQty) {
-        this.locationId = locationId;
-        this.demandQty = demandQty;
-    }
+
+
+
+
+
+.carousel-container {
+  width: 80%;
+  margin: auto;
+  position: relative;
 }
 
+.carousel-heading {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 28px;
+  font-weight: bold;
+}
 
+.card-slide {
+  position: relative;
+  height: 400px;
+}
 
+.background-img {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(4px) brightness(0.8);
+  border-radius: 15px;
+}
 
+.card-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 20px;
+  border-radius: 15px;
+  max-width: 500px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
 
-package com.example.Hainproject.RP.service;
+.card-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
 
-import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
+.card-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
 
-import com.example.Mainproject.RP.model.RPDeployProfileModel;
-import com.example.Mainproject.RP.model.RPDeployProfileModel.DemandPriority;
-import com.example.Mainproject.util.TableNames;
-import com.example.Mainproject.RP.model.DeploySummaryDTO;
-
-import java.sql.Date;
-import java.time.LocalDate;
-import java.util.*;
-
-@Service
-public class RPDeployProfileService {
-
-    private final EntityManager entityManager;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    public RPDeployProfileService(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
-    @Transactional
-    public void insertDeployProfile(RPDeployProfileModel model) {
-        try {
-            // Step 1: Prepare deploy rule string
-            String deployRule = model.getSelectedRuleIds() != null
-                ? String.join(",", model.getSelectedRuleIds().stream().map(String::valueOf).toArray(String[]::new))
-                : "";
-
-            // Step 2: Generate new dmd_pty_config
-            String latestCfgSql = "SELECT dmd_pty_config FROM sclrp.rp_dmd_pty_config " +
-                                  "WHERE dmd_pty_config LIKE 'DmdConfig%' ORDER BY dmd_pty_config DESC LIMIT 1";
-            String latestCfg;
-            try {
-                latestCfg = (String) entityManager.createNativeQuery(latestCfgSql).getSingleResult();
-            } catch (Exception e) {
-                latestCfg = null;
-            }
-
-            int nextCfgNum = 1;
-            if (latestCfg != null && latestCfg.startsWith("DmdConfig")) {
-                try {
-                    String numericPart = latestCfg.substring(9);
-                    nextCfgNum = Integer.parseInt(numericPart) + 1;
-                } catch (NumberFormatException e) {
-                    System.out.println("Failed to parse dmd_pty_config: " + latestCfg);
-                }
-            }
-
-            String newDmdPtyConfig = "DmdConfig" + String.format("%03d", nextCfgNum);
-            String dmdPtyConfig = newDmdPtyConfig;
-            String newDeployProfileId = model.getDeployprofileid();
-
-            // Step 3: Validate deployProfileId existence
-            String validateSql = "SELECT COUNT(*) FROM sclrp.rp_sku_replen_param WHERE deployprofileid = :newDeployProfileId";
-            Number countResult = (Number) entityManager.createNativeQuery(validateSql)
-                .setParameter("newDeployProfileId", newDeployProfileId)
-                .getSingleResult();
-
-            int count = countResult.intValue();
-            if (count == 0) {
-                throw new RuntimeException("Provided deployProfileId does not exist in rp_sku_replen_param.");
-            }
-
-            // Step 4: Insert into rp_deploy_profile
-            String sql = "INSERT INTO sclrp.rp_deploy_profile " +
-                         "(deployrule, dmd_pty_config, priority_dur, deployprofileid) " +
-                         "VALUES (:deployRule, :dmdPtyConfig, :priorityDur, :deployprofileid)";
-            entityManager.createNativeQuery(sql)
-                .setParameter("deployRule", deployRule)
-                .setParameter("dmdPtyConfig", dmdPtyConfig)
-                .setParameter("priorityDur", model.getPriorityDur())
-                .setParameter("deployprofileid", newDeployProfileId)
-                .executeUpdate();
-
-            // Step 5: Insert demand priorities
-            if (model.getDemandPriorities() != null && !model.getDemandPriorities().isEmpty()) {
-                String configSql = "INSERT INTO sclrp.rp_dmd_pty_config " +
-                                   "(dmd_pty_config, dmd_type, channel, pty) " +
-                                   "VALUES (:dmdPtyConfig, :dmdType, :channel, :pty)";
-                for (DemandPriority dp : model.getDemandPriorities()) {
-                    entityManager.createNativeQuery(configSql)
-                        .setParameter("dmdPtyConfig", dmdPtyConfig)
-                        .setParameter("dmdType", dp.getDmdType())
-                        .setParameter("channel", dp.getChannel())
-                        .setParameter("pty", dp.getPty())
-                        .executeUpdate();
-                }
-            }
-
-            // Step 6: Update location priorities and calculate end dates
-            String updateLocationPrioritySql = "UPDATE sclbl.bl_location SET loc_priority = :locPriority WHERE location_id = :locationId";
-            String planDateSql = "SELECT plan_date FROM sclrp.rp_sku_replen_param " +
-                                 "WHERE location_id = :locationId AND deployprofileid = :deployProfileid " +
-                                 "ORDER BY plan_date DESC LIMIT 1";
-
-            Map<String, LocalDate> locationEndDates = new HashMap<>();
-
-            for (RPDeployProfileModel.LocationPriorityDTO loc : model.getLocations()) {
-                entityManager.createNativeQuery(updateLocationPrioritySql)
-                    .setParameter("locPriority", loc.getLocPriority())
-                    .setParameter("locationId", loc.getLocationId())
-                    .executeUpdate();
-
-                try {
-                    Date planDate = (Date) entityManager.createNativeQuery(planDateSql)
-                        .setParameter("locationId", loc.getLocationId())
-                        .setParameter("deployProfileid", newDeployProfileId)
-                        .getSingleResult();
-
-                    if (planDate != null) {
-                        LocalDate startDate = planDate.toLocalDate();
-                        LocalDate endDate = startDate.plusDays(model.getPriorityDur());
-                        locationEndDates.put(loc.getLocationId(), endDate);
-
-                        System.out.println("Location " + loc.getLocationId() +
-                            ": Priority duration starts " + startDate + " and ends " + endDate);
-                    }
-                } catch (Exception e) {
-                    System.out.println("No plan_date found for location " + loc.getLocationId());
-                }
-            }
-
-            System.out.println("Deploy profile and demand priorities inserted successfully.");
-        } catch (Exception e) {
-            System.out.println("Error inserting deploy rule: " + e);
-            throw new RuntimeException("Failed to insert deploy rule.");
-        }
-    }
-
-    @Transactional
-    public List<DeploySummaryDTO> getMergedSummary() {
-        String sql = """
-            SELECT
-                rpdp.deployprofileid,
-                (
-                    SELECT STRING_AGG(DISTINCT rpdp_inner.priority_dur::TEXT, ',')
-                    FROM sclrp.rp_deploy_profile rpdp_inner
-                    WHERE rpdp_inner.deployprofileid = rpdp.deployprofileid
-                ) AS priority,
-                (
-                    SELECT STRING_AGG(DISTINCT dpc.dmd_type::TEXT, ', ')
-                    FROM sclrp.rp_dmd_pty_config dpc
-                    JOIN sclrp.rp_deploy_profile rpdp_inner ON rpdp_inner.dmd_pty_config = dpc.dmd_pty_config
-                    WHERE rpdp_inner.deployprofileid = rpdp.deployprofileid
-                ) AS dmdtype,
-                (
-                    SELECT STRING_AGG(DISTINCT rps.location_id, ',')
-                    FROM sclrp.rp_sku_replen_param rps
-                    WHERE rps.deployprofileid = rpdp.deployprofileid
-                ) AS location_id,
-                (
-                    SELECT STRING_AGG(DISTINCT bl.loc_priority::TEXT, ',')
-                    FROM sclrp.rp_sku_replen_param rps
-                    JOIN sclbl.bl_location bl ON rps.location_id = bl.location_id
-                    WHERE rps.deployprofileid = rpdp.deployprofileid
-                ) AS locationpriority,
-                (
-                    SELECT STRING_AGG(DISTINCT rpdp_inner.deployrule, ', ')
-                    FROM sclrp.rp_deploy_profile rpdp_inner
-                    WHERE rpdp_inner.deployprofileid = rpdp.deployprofileid
-                ) AS selected_rule,
-                (
-                    SELECT STRING_AGG(
-                        DISTINCT TO_CHAR(rps.plan_date + CAST(rpdp_inner.priority_dur AS INTEGER), 'YYYYMMDD'),
-                        ','
-                    )
-                    FROM sclrp.rp_sku_replen_param rps
-                    JOIN sclrp.rp_deploy_profile rpdp_inner ON rps.deployprofileid = rpdp_inner.deployprofileid
-                    WHERE rps.deployprofileid = rpdp.deployprofileid
-                ) AS end_date
-            FROM sclrp.rp_deploy_profile rpdp
-            GROUP BY rpdp.deployprofileid
-            ORDER BY CAST(REGEXP_REPLACE(rpdp.deployprofileid, '[^0-9]', '', 'g') AS INTEGER) DESC
-        """;
-
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
-        List<DeploySummaryDTO> results = new ArrayList<>();
-
-        for (Map<String, Object> row : rows) {
-            DeploySummaryDTO dto = new DeploySummaryDTO();
-            dto.setPriority_dur(getString(row.get("priority")));
-            dto.setDmdtype(getString(row.get("dmdtype")));
-            dto.setLocationId(getString(row.get("location_id")));
-            dto.setLocationPriority(getString(row.get("locationpriority")));
-            dto.setSelectedRule(getString(row.get("selected_rule")));
-            dto.setEndDate(getString(row.get("end_date")));
-            results.add(dto);
-        }
-
-        return results;
-    }
-
-    private String getString(Object value) {
-        return value != null ? value.toString() : "";
-    }
+.card-desc {
+  font-size: 16px;
+  color: #333;
 }
