@@ -131,3 +131,86 @@ export default function ProfileModal({ member, onClose }: ProfileModalProps) {
     </div>
   )
 }
+
+
+
+
+
+"use client"
+
+import { useState } from "react"
+import ProfileModal from "../components/profile-modal"
+
+// Sample team data
+const teamMembers = [
+  {
+    id: 1,
+    name: "Shanti Mudigonda",
+    title: "Executive Vice President",
+    image:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_20250910_165036071_MP.jpg-eIUfdqX9DSyTlvChKImHSuSWG4YwRg.jpeg",
+    description:
+      "A seasoned Operations Executive is responsible overseeing the entire process. Supporting organizations vision while maintaining an intimate knowledge of every department of the organization. Responsible for ensuring operational deadlines are met while maintaining quality control standards. As an executive, working closely with CEO and board, communicating top level ideas while demonstrating results.",
+    linkedin: "https://linkedin.com/in/shanti-mudigonda",
+  },
+  {
+    id: 2,
+    name: "John Smith",
+    title: "Chief Technology Officer",
+    image: "/professional-male-headshot.png",
+    description:
+      "Experienced technology leader with over 15 years in software development and team management. Specializes in scalable architecture and digital transformation initiatives.",
+    linkedin: "https://linkedin.com/in/john-smith",
+  },
+  {
+    id: 3,
+    name: "Sarah Johnson",
+    title: "Head of Marketing",
+    image: "/professional-headshot-female.png",
+    description:
+      "Creative marketing strategist with expertise in brand development and digital campaigns. Proven track record of driving growth through innovative marketing solutions.",
+    linkedin: "https://linkedin.com/in/sarah-johnson",
+  },
+]
+
+export default function HomePage() {
+  const [selectedMember, setSelectedMember] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+
+  const handleCardClick = (member) => {
+    setSelectedMember(member)
+    setShowModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setSelectedMember(null)
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">Our Team</h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {teamMembers.map((member) => (
+            <div
+              key={member.id}
+              className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
+              onClick={() => handleCardClick(member)}
+            >
+              <img src={member.image || "/placeholder.svg"} alt={member.name} className="w-full h-64 object-cover" />
+              <div className="p-4">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">{member.name}</h3>
+                <p className="text-gray-600">{member.title}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showModal && selectedMember && <ProfileModal member={selectedMember} onClose={handleCloseModal} />}
+    </div>
+  )
+}
+
