@@ -424,3 +424,137 @@ export default function PortfolioSection() {
   )
 }
 
+"use client"
+
+export default function PortfolioSection() {
+  return (
+    <section className="portfolio-section py-5 bg-light">
+      <div className="container">
+        <div className="row justify-content-center text-center mb-5">
+          <div className="col-lg-8">
+            <p className="behind-designs mb-3 fw-medium">Behind the Designs</p>
+            <h1 className="main-heading mb-4 fw-bold">
+              Curious What Else I've
+              <br />
+              Created?
+            </h1>
+            <p className="subtitle mb-4 text-muted">
+              Explore more brand identities, packaging, and digital design work in my extended portfolio.
+            </p>
+            <button className="btn btn-projects rounded-pill px-4 py-2 fw-medium">
+              See more Projects
+              <i className="arrow-icon ms-2">→</i>
+            </button>
+          </div>
+        </div>
+
+        <div className="row justify-content-center">
+          <div className="col-12">
+            <div className="cards-container position-relative d-flex justify-content-center align-items-center">
+              <div className="card-3d card-1 position-absolute">
+                <div className="card-inner bg-white rounded-4 shadow-lg overflow-hidden">
+                  <img
+                    src="/orange-drink-with-straw-on-blue-background.jpg"
+                    alt="Strategy & Planning"
+                    className="card-image w-100 h-100"
+                  />
+                </div>
+                <div className="card-info text-center mt-3">
+                  <span className="card-number fw-semibold">#01</span>
+                  <h5 className="card-title fw-semibold mt-2 mb-0">Strategy & Planning</h5>
+                </div>
+              </div>
+
+              <div className="card-3d card-2 position-absolute">
+                <div className="card-inner bg-white rounded-4 shadow-lg overflow-hidden">
+                  <div className="image-grid h-100 p-2">
+                    <img src="/dark-fabric-texture.jpg" alt="Design work 1" className="grid-image rounded-3" />
+                    <img src="/red-abstract-design.jpg" alt="Design work 2" className="grid-image rounded-3" />
+                    <img src="/person-with-white-bottle.jpg" alt="Design work 3" className="grid-image rounded-3" />
+                  </div>
+                </div>
+                <div className="card-info text-center mt-3">
+                  <span className="card-number fw-semibold">#02</span>
+                  <h5 className="card-title fw-semibold mt-2 mb-0">Design & Development</h5>
+                </div>
+              </div>
+
+              <div className="card-3d card-3 position-absolute">
+                <div className="card-inner bg-white rounded-4 shadow-lg overflow-hidden">
+                  <div className="image-grid h-100 p-2">
+                    <img
+                      src="/woman-in-white-hoodie-outdoors.jpg"
+                      alt="Launch work 1"
+                      className="grid-image rounded-3"
+                    />
+                    <img
+                      src="/white-product-in-nature-setting.jpg"
+                      alt="Launch work 2"
+                      className="grid-image rounded-3"
+                    />
+                  </div>
+                </div>
+                <div className="card-info text-center mt-3">
+                  <span className="card-number fw-semibold">#03</span>
+                  <h5 className="card-title fw-semibold mt-2 mb-0">Launch & Growth</h5>
+                </div>
+              </div>
+
+              <div className="card-3d card-4 position-absolute">
+                <div className="card-inner bg-white rounded-4 shadow-lg overflow-hidden">
+                  <img
+                    src="/strawberry-drink-bottle-with-floating-strawberries.jpg"
+                    alt="Ongoing Support"
+                    className="card-image w-100 h-100"
+                  />
+                </div>
+                <div className="card-info text-center mt-3">
+                  <span className="card-number fw-semibold">#04</span>
+                  <h5 className="card-title fw-semibold mt-2 mb-0">Ongoing Support</h5>
+                </div>
+              </div>
+
+              <div className="card-3d card-5 position-absolute">
+                <div className="card-inner bg-white rounded-4 shadow-lg overflow-hidden">
+                  <img
+                    src="/modern-web-interface-design-mockup.jpg"
+                    alt="Web Development"
+                    className="card-image w-100 h-100"
+                  />
+                </div>
+                <div className="card-info text-center mt-3">
+                  <span className="card-number fw-semibold">#05</span>
+                  <h5 className="card-title fw-semibold mt-2 mb-0">Web Development</h5>
+                </div>
+              </div>
+
+              <div className="card-3d card-6 position-absolute">
+                <div className="card-inner bg-white rounded-4 shadow-lg overflow-hidden">
+                  <img src="/mobile-app-ui-design-screens.png" alt="Mobile Apps" className="card-image w-100 h-100" />
+                </div>
+                <div className="card-info text-center mt-3">
+                  <span className="card-number fw-semibold">#06</span>
+                  <h5 className="card-title fw-semibold mt-2 mb-0">Mobile Apps</h5>
+                </div>
+              </div>
+
+              <div className="card-3d card-7 position-absolute">
+                <div className="card-inner bg-white rounded-4 shadow-lg overflow-hidden">
+                  <img
+                    src="/brand-identity-logo-design-collection.jpg"
+                    alt="Brand Identity"
+                    className="card-image w-100 h-100"
+                  />
+                </div>
+                <div className="card-info text-center mt-3">
+                  <span className="card-number fw-semibold">#07</span>
+                  <h5 className="card-title fw-semibold mt-2 mb-0">Brand Identity</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
