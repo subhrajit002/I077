@@ -347,3 +347,126 @@ export default function ScheduleMeeting() {
         </div>
     );
 }
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
+
+function App() {
+  const tickets = [
+    {
+      id: "#TC-192",
+      subject: "Help, I order wrong product...",
+      priority: "High",
+      type: "Incident",
+      client: "Sante Carlazo",
+      date: "07/11/2023, 06:25AM",
+    },
+    {
+      id: "#TC-191",
+      subject: "My Suggestion for this product",
+      priority: "Low",
+      type: "Suggestion",
+      client: "Fast Response",
+      date: "06/11/2023, 11:47PM",
+    },
+    {
+      id: "#TC-190",
+      subject: "Can I use the TV in bathroom?",
+      priority: "Medium",
+      type: "Question",
+      client: "Arlene McCoy",
+      date: "06/11/2023, 05:13AM",
+    },
+  ];
+
+  return (
+    <div className="d-flex dashboard">
+      {/* Sidebar */}
+      <div className="sidebar p-3">
+        <h5 className="mb-4">Fikri Studio</h5>
+        <ul className="list-unstyled">
+          <li className="active">Dashboard</li>
+          <li>Inbox</li>
+          <li>Notification</li>
+          <li>Ticket</li>
+          <li>Knowledge Base</li>
+          <li>Customer</li>
+          <li>Forum</li>
+          <li>Report</li>
+        </ul>
+      </div>
+
+      {/* Main Content */}
+      <div className="main-content p-3 flex-grow-1">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h4>Ticket</h4>
+          <button className="btn btn-success">+ Add Ticket</button>
+        </div>
+
+        {/* Search & Filters */}
+        <div className="d-flex mb-3 flex-wrap">
+          <input
+            type="text"
+            className="form-control me-2 mb-2"
+            placeholder="Search"
+            style={{ maxWidth: "250px" }}
+          />
+          <select className="form-select me-2 mb-2" style={{ maxWidth: "150px" }}>
+            <option>Type</option>
+            <option>Incident</option>
+            <option>Question</option>
+            <option>Suggestion</option>
+          </select>
+          <select className="form-select me-2 mb-2" style={{ maxWidth: "150px" }}>
+            <option>Priority</option>
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+
+        {/* Tickets Table */}
+        <div className="table-responsive">
+          <table className="table table-hover align-middle">
+            <thead className="table-light">
+              <tr>
+                <th>Ticket ID</th>
+                <th>Subject</th>
+                <th>Priority</th>
+                <th>Type</th>
+                <th>Client</th>
+                <th>Request Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tickets.map((t, idx) => (
+                <tr key={idx}>
+                  <td>{t.id}</td>
+                  <td>{t.subject}</td>
+                  <td>
+                    <span
+                      className={`badge ${
+                        t.priority === "High"
+                          ? "bg-danger"
+                          : t.priority === "Medium"
+                          ? "bg-warning text-dark"
+                          : "bg-success"
+                      }`}
+                    >
+                      {t.priority}
+                    </span>
+                  </td>
+                  <td>{t.type}</td>
+                  <td>{t.client}</td>
+                  <td>{t.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
