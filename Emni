@@ -793,3 +793,248 @@ const ProjectPortfolioDashboard = () => {
 
 export default ProjectPortfolioDashboard
 
+
+import React from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  LineChart,
+  Line,
+  ResponsiveContainer,
+} from "recharts";
+
+const Dashboard = () => {
+  // --- Data ---
+  const projectStatus = [
+    { status: "Demand", count: 14 },
+    { status: "Active", count: 35 },
+    { status: "Total", count: 49 },
+  ];
+
+  const ragStatus = [
+    { label: "Red", value: 12, color: "#d9534f" },
+    { label: "Amber", value: 6, color: "#f0ad4e" },
+    { label: "Green", value: 31, color: "#5cb85c" },
+  ];
+
+  const fundingData = [
+    { name: "Estates", value: 62 },
+    { name: "Faculty", value: 31 },
+    { name: "Finance", value: 25 },
+    { name: "HR", value: 43 },
+  ];
+
+  const portfolioBalance = [
+    { name: "Maintaining", value: 28.3 },
+    { name: "Cost Avoidance", value: 12.3 },
+    { name: "Cost Reduction", value: 36.2 },
+    { name: "Growth", value: 22.9 },
+  ];
+
+  const budgetByQuarter = [
+    { quarter: "Q1", value: 25 },
+    { quarter: "Q2", value: 42 },
+    { quarter: "Q3", value: 57 },
+  ];
+
+  const budgetsByTime = [
+    { quarter: "Q1", Estates: 10, Faculty: 5, Finance: 3, HR: 6 },
+    { quarter: "Q2", Estates: 8, Faculty: 9, Finance: 7, HR: 10 },
+    { quarter: "Q3", Estates: 7, Faculty: 11, Finance: 9, HR: 8 },
+  ];
+
+  const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042"];
+
+  // --- Layout ---
+  return (
+    <div className="container-fluid bg-light py-3 px-4">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h4 className="fw-bold text-primary">MAXICA CONSULTING</h4>
+          <p className="mb-0 text-secondary small">
+            Business & IT Management Consultancy
+          </p>
+          <h5 className="fw-bold mt-2">Project Portfolio Dashboard</h5>
+        </div>
+        <div className="d-flex gap-3">
+          <div className="bg-warning text-dark text-center p-3 rounded shadow-sm">
+            <div className="fs-5 fw-bold">4.04</div>
+            <div className="small">Portfolio Risk Score</div>
+          </div>
+          <div className="bg-danger text-white text-center p-3 rounded shadow-sm">
+            <div className="fs-5 fw-bold">4.47</div>
+            <div className="small">Portfolio Risk (Last)</div>
+          </div>
+        </div>
+      </div>
+
+      {/* TOP LEFT: Table + RAG */}
+      <div className="row">
+        <div className="col-md-3">
+          <div className="card shadow-sm mb-3">
+            <div className="card-body p-2">
+              <table className="table table-sm text-center mb-0">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th># Projects</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {projectStatus.map((item, i) => (
+                    <tr key={i}>
+                      <td>{item.status}</td>
+                      <td>{item.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* RAG boxes */}
+          <div className="d-flex flex-column gap-2">
+            {ragStatus.map((r, i) => (
+              <div
+                key={i}
+                className="d-flex justify-content-between text-white fw-bold px-3 py-2 rounded"
+                style={{ backgroundColor: r.color }}
+              >
+                <span>{r.label}</span>
+                <span>{r.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CHARTS AREA */}
+        <div className="col-md-9">
+          <div className="row">
+            {/* Project Budget by Funding Entity */}
+            <div className="col-md-6 mb-3">
+              <div className="card shadow-sm">
+                <div className="card-header fw-bold">
+                  Project Budget by Funding Entity
+                </div>
+                <div className="card-body" style={{ height: 250 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={fundingData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="#007bff" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Portfolio Balance Pie */}
+            <div className="col-md-6 mb-3">
+              <div className="card shadow-sm">
+                <div className="card-header fw-bold">Portfolio Balance</div>
+                <div className="card-body" style={{ height: 250 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={portfolioBalance}
+                        dataKey="value"
+                        nameKey="name"
+                        outerRadius={80}
+                        label
+                      >
+                        {portfolioBalance.map((entry, index) => (
+                          <Cell
+                            key={index}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="row">
+            {/* Approved Budget by Quarter */}
+            <div className="col-md-6 mb-3">
+              <div className="card shadow-sm">
+                <div className="card-header fw-bold">
+                  Approved Budget by Quarter
+                </div>
+                <div className="card-body" style={{ height: 250 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={budgetByQuarter}>
+                      <XAxis dataKey="quarter" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="#28a745" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Portfolio Budgets by Time */}
+            <div className="col-md-6 mb-3">
+              <div className="card shadow-sm">
+                <div className="card-header fw-bold">
+                  Portfolio Budgets by Time
+                </div>
+                <div className="card-body" style={{ height: 250 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={budgetsByTime}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="quarter" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="Estates"
+                        stroke="#007bff"
+                        strokeWidth={2}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="Faculty"
+                        stroke="#28a745"
+                        strokeWidth={2}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="Finance"
+                        stroke="#ffc107"
+                        strokeWidth={2}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="HR"
+                        stroke="#dc3545"
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
