@@ -1,0 +1,338 @@
+
+
+
+
+
+"use client"
+
+import { useState } from "react"
+import "bootstrap/dist/css/bootstrap.min.css"
+import "./dashboard.css"
+
+export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState("estates")
+
+  const portfolioRisks = [
+    { id: 1, title: "4.1", subtitle: "Portfolio Risk (High)" },
+    { id: 2, title: "4.4", subtitle: "Portfolio Risk (High)" },
+  ]
+
+  const navigationButtons = ["Estates", "Faculty", "Finance", "HR", "IT"]
+
+  return (
+    <div className="dashboard-container">
+      {/* Header Section */}
+      <header className="dashboard-header">
+        <div className="header-content">
+          {/* Logo */}
+          <div className="logo-section">
+            <div className="logo-box">
+              <div className="logo-text">MAXICA</div>
+              <div className="logo-accent"></div>
+            </div>
+          </div>
+
+          {/* Title Section */}
+          <div className="title-section">
+            <h1 className="company-title">MAXICA CONSULTING</h1>
+            <p className="company-subtitle">Business & IT Management Consultancy</p>
+            <h2 className="dashboard-title">Project Portfolio Dashboard</h2>
+          </div>
+
+          {/* Right Side Boxes */}
+          <div className="right-boxes">
+            {portfolioRisks.map((risk) => (
+              <div key={risk.id} className="risk-box">
+                <div className="risk-number">{risk.title}</div>
+                <div className="risk-label">{risk.subtitle}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      {/* Navigation Bar */}
+      <nav className="dashboard-nav">
+        <div className="nav-buttons">
+          {navigationButtons.map((button) => (
+            <button
+              key={button}
+              className={`nav-btn ${activeTab === button.toLowerCase() ? "active" : ""}`}
+              onClick={() => setActiveTab(button.toLowerCase())}
+            >
+              {button}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="dashboard-content">
+        <div className="content-placeholder">
+          <p>Dashboard content for {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</p>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #2a2a2a;
+  color: #ffffff;
+}
+
+.dashboard-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #2a2a2a;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Styles */
+.dashboard-header {
+  background-color: #2a2a2a;
+  padding: 30px 40px;
+  border-bottom: 3px solid #1a3a7a;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+/* Logo Section */
+.logo-section {
+  flex-shrink: 0;
+}
+
+.logo-box {
+  width: 160px;
+  height: 120px;
+  background: linear-gradient(135deg, #e8e8e8 0%, #b0b0b0 50%, #4a90e2 50%, #2e5c8a 100%);
+  border: 3px solid #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1a3a7a;
+  letter-spacing: 2px;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.logo-accent {
+  position: absolute;
+  width: 100%;
+  height: 3px;
+  background-color: #1a3a7a;
+  bottom: 30%;
+  left: 0;
+}
+
+/* Title Section */
+.title-section {
+  flex: 1;
+  text-align: center;
+}
+
+.company-title {
+  font-size: 48px;
+  font-weight: bold;
+  color: #a0a0a0;
+  letter-spacing: 3px;
+  margin-bottom: 5px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.company-subtitle {
+  font-size: 18px;
+  color: #808080;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #606060;
+  padding-bottom: 10px;
+}
+
+.dashboard-title {
+  font-size: 42px;
+  font-weight: bold;
+  color: #b0b0b0;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Right Boxes */
+.right-boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+.risk-box {
+  width: 140px;
+  height: 100px;
+  background: linear-gradient(135deg, #d4a574 0%, #c9945f 100%);
+  border: 3px solid #8b6f47;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.risk-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.1) 2px,
+    rgba(255, 255, 255, 0.1) 4px
+  );
+  pointer-events: none;
+}
+
+.risk-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: #f5e6d3;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.risk-label {
+  font-size: 12px;
+  color: #8b6f47;
+  text-align: center;
+  font-weight: bold;
+  z-index: 1;
+  margin-top: 5px;
+}
+
+/* Navigation Bar */
+.dashboard-nav {
+  background-color: #1a3a7a;
+  padding: 15px 40px;
+  border-bottom: 2px solid #0f2550;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  padding: 10px 25px;
+  background-color: #b0b0b0;
+  color: #333;
+  border: 2px solid #999;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.nav-btn:hover {
+  background-color: #c0c0c0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nav-btn.active {
+  background-color: #7a9fd4;
+  color: #ffffff;
+  border-color: #5a7fb4;
+}
+
+/* Main Content */
+.dashboard-content {
+  flex: 1;
+  padding: 40px;
+  background-color: #2a2a2a;
+}
+
+.content-placeholder {
+  background-color: #3a3a3a;
+  padding: 40px;
+  border-radius: 5px;
+  text-align: center;
+  color: #a0a0a0;
+  font-size: 18px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .header-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .company-title {
+    font-size: 36px;
+  }
+
+  .dashboard-title {
+    font-size: 32px;
+  }
+
+  .right-boxes {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    padding: 20px;
+  }
+
+  .logo-box {
+    width: 120px;
+    height: 90px;
+  }
+
+  .company-title {
+    font-size: 28px;
+  }
+
+  .dashboard-title {
+    font-size: 24px;
+  }
+
+  .nav-btn {
+    padding: 8px 15px;
+    font-size: 12px;
+  }
+
+  .dashboard-content {
+    padding: 20px;
+  }
+}
+
