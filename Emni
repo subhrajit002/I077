@@ -190,3 +190,83 @@ hr {
     border: 0;
     border-top: 1px solid rgba(0, 0, 0, .1);
 }
+
+
+
+
+
+
+
+
+
+
+import express from "express";
+import mysql from "mysql2/promise"; // use promise-based mysql client
+
+const app = express();
+app.use(express.json());
+
+// ✅ create DB connection
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "root",
+  password: "your_password",
+  database: "your_database",
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
+
+// ✅ API route
+app.get("/api/timeline-hours", async (req, res) => {
+  try {
+    const query = `
+      WITH TimelineValues AS (
+        SELECT
+          jt.\`key\` AS TimelineKey,
+          jt.\`value\` AS TimeValue
+        FROM PROJECT
+        JOIN JSON_TABLE(TIMELINE, '$.*'
+          COLUMNS (
+            \`key\` VARCHAR(100) PATH '$.key',
+            \`value\` VARCHAR(100) PATH '$'
+          )
+        ) AS jt
+      ),
+      ConvertedTimes AS (
+        SELECT
+          TimelineKey,
+          CAST(SUBSTRING_INDEX(TimeValue, ':', 1) AS UNSIGNED) * 60 +
+          CAST(SUBSTRING_INDEX(TimeValue, ':', -1) AS UNSIGNED) AS TotalMinutes
+        FROM TimelineValues
+        WHERE TimeValue LIKE '%:%'
+      )
+      SELECT
+        ROUND(SUM(TotalMinutes) / 60, 2) AS TotalHours,
+        CONCAT(
+          FLOOR(SUM(TotalMinutes) / 60), ':',
+          LPAD(SUM(TotalMinutes) % 60, 2, '0')
+        ) AS TotalTimeFormatted
+      FROM ConvertedTimes;
+    `;
+
+    const [rows] = await pool.query(query);
+
+    res.json({
+      success: true,
+      data: rows[0],
+    });
+  } catch (error) {
+    console.error("Error executing timeline query:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+});
+
+// ✅ Start server
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
